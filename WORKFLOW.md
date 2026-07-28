@@ -26,3 +26,37 @@ Types:
 - docs
 - refactor
 - chore
+
+---
+
+## Pull Request Process
+
+Every feature is developed on its own branch.
+
+Each Pull Request should:
+
+- Link a GitHub Issue.
+- Explain what changed.
+- Receive at least one review before merging.
+
+Reviews focus on:
+
+- Correctness
+- Readability
+- Data integrity
+- Documentation quality
+
+---
+
+## GitHub Issues
+
+Every feature starts with a GitHub Issue.
+
+Each issue has:
+
+- Title
+- Description
+- Label
+- Assignee
+
+Issues are closed after the related Pull Request is merged.
