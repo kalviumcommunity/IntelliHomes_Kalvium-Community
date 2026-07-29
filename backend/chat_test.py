@@ -12,7 +12,7 @@ client = OpenAI(
     timeout=300,
 )
 
-model = os.getenv("OPENAI_MODEL")
+model = os.environ["OPENAI_MODEL"]
 
 messages = [
     {
