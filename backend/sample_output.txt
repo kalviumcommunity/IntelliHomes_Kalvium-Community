@@ -1,0 +1,27 @@
+===== REQUEST =====
+[
+  {
+    "role": "system",
+    "content": "You are IntelliHomes AI."
+  },
+  {
+    "role": "user",
+    "content": "List three property documents to verify."
+  }
+]
+
+Sending request to Ollama...
+
+Response received!
+
+===== RESPONSE =====
+As IntelliHomes AI, I recommend verifying the following three property documents to ensure a smooth and hassle-free transaction:
+
+1. **Title Deed (Also known as Property Certificate of Title)**: This document proves the ownership of the property and its boundaries. It's issued by the local land registry or registry office.
+2. **Survey Plan/Cadastre**: A detailed map of the property, showing its exact boundaries, dimensions, and any easements or encumbrances on the property. This helps establish the property's size and any potential issues with adjacent properties.
+3. **Property Tax Bill (or recent receipt)**: These documents confirm that the seller has been paying the required taxes up to date, ensuring there are no outstanding liabilities associated with the property.
+
+These essential documents provide crucial evidence of ownership, boundaries, and compliance with local authorities' requirements.
+
+===== TOKEN USAGE =====
+CompletionUsage(completion_tokens=174, prompt_tokens=29, total_tokens=203, completion_tokens_details=None, prompt_tokens_details=None)
