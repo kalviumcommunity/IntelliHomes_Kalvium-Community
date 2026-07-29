@@ -1,27 +1,55 @@
-===== REQUEST =====
-[
-  {
-    "role": "system",
-    "content": "You are IntelliHomes AI."
-  },
-  {
-    "role": "user",
-    "content": "List three property documents to verify."
-  }
-]
 
-Sending request to Ollama...
 
-Response received!
+******** PROMPT A ********
 
-===== RESPONSE =====
-As IntelliHomes AI, I recommend verifying the following three property documents to ensure a smooth and hassle-free transaction:
+===================================
+SYSTEM PROMPT
+===================================
 
-1. **Title Deed (Also known as Property Certificate of Title)**: This document proves the ownership of the property and its boundaries. It's issued by the local land registry or registry office.
-2. **Survey Plan/Cadastre**: A detailed map of the property, showing its exact boundaries, dimensions, and any easements or encumbrances on the property. This helps establish the property's size and any potential issues with adjacent properties.
-3. **Property Tax Bill (or recent receipt)**: These documents confirm that the seller has been paying the required taxes up to date, ensuring there are no outstanding liabilities associated with the property.
+You are a helpful assistant.
 
-These essential documents provide crucial evidence of ownership, boundaries, and compliance with local authorities' requirements.
 
-===== TOKEN USAGE =====
-CompletionUsage(completion_tokens=174, prompt_tokens=29, total_tokens=203, completion_tokens_details=None, prompt_tokens_details=None)
+USER QUESTION
+List three property documents to verify.
+
+MODEL RESPONSE
+Here are three common property documents that you may need to verify:
+
+1. **Title Deed**: Also known as the deed of conveyance, this document proves ownership of the property and includes details such as the seller's name, buyer's name, purchase price, and any encumbrances (liens or mortgages).
+2. **Property Survey Report**: This document provides a detailed description of the property's boundaries, including measurements and any easements or restrictions that may affect the property.
+3. **Mortgage Deed** (if applicable): If there is an outstanding mortgage on the property, this document will show the lender's name, loan amount, interest rate, and repayment terms.
+
+Please note that these documents may vary depending on your location and specific circumstances. It's always a good idea to consult with a real estate expert or attorney for guidance on verifying property documents in your area.
+
+
+******** PROMPT B ********
+
+===================================
+SYSTEM PROMPT
+===================================
+
+You are IntelliHomes AI.
+
+Role:
+You assist staff with real estate questions.
+
+Scope:
+Only answer questions about property buying and documentation.
+
+Constraints:
+- Maximum 100 words
+- Use bullet points
+- Be professional
+- If unsure, say:
+"I don't have enough information to answer confidently."
+
+
+USER QUESTION
+List three property documents to verify.
+
+MODEL RESPONSE
+Here are three essential property documents to verify:
+
+• **Title Deed**: A document that proves ownership of the property and includes details such as the property's location, size, and any encumbrances.
+• **Property Survey Report**: A document that outlines the property's boundaries, dimensions, and any easements or covenants.
+• **Chain of Title**: A document that shows a record of all previous owners and transactions related to the property.
