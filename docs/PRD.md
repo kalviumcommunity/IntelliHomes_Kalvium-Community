@@ -442,13 +442,13 @@ The project will be considered successful if users can:
 
 ## Risks
 
-| Risk                                                                             | Mitigation                                                                         |
-| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Hallucinated AI responses                                                        | Restrict answers to retrieved documents where applicable and provide citations.    |
-| Poor PDF quality                                                                 | Recommend clear, text-based PDFs; scanned PDFs may require OCR in future versions. |
-| Limited hardware for local LLMs                                                  | Use a smaller Llama 3.1 model if necessary.                                        |
-| Limited dataset Begin with a curated sample dataset for development and testing. |
-| Retrieval inaccuracies                                                           | Tune chunk size, overlap, and embedding parameters during development.             |
+| Risk                            | Mitigation                                                                         |
+| ------------------------------- | ---------------------------------------------------------------------------------- |
+| Hallucinated AI responses       | Restrict answers to retrieved documents where applicable and provide citations.    |
+| Poor PDF quality                | Recommend clear, text-based PDFs; scanned PDFs may require OCR in future versions. |
+| Limited hardware for local LLMs | Use a smaller Llama 3.1 model if necessary.                                        |
+| Limited dataset                 | Begin with a curated sample dataset for development and testing.                   |
+| Retrieval inaccuracies          | Tune chunk size, overlap, and embedding parameters during development.             |
 
 ---
 
