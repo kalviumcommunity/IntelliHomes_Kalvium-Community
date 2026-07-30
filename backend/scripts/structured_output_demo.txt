@@ -1,0 +1,98 @@
+  Structured Output Demo  |  Model: llama3.1:8b
+  Mode: 🟡 Simulated
+  Required fields: ('answer', 'source')
+  Questions: 5
+  Simulated responses: 5 items (some deliberately malformed for demo)
+
+
+  ╔════════════════════════════════════════════════════════════════════╗
+  ║ [1] Q: What documents verify property ownership?                     ║
+  ╚════════════════════════════════════════════════════════════════════╝
+
+
+    ✅  Parsed & validated successfully
+    ──────────────────────────────────────────────────
+    answer       : Title deed, sale deed, and encumbrance certificate.
+    source       : Property Documentation Guide
+    ──────────────────────────────────────────────────
+
+
+  ╔════════════════════════════════════════════════════════════════════╗
+  ║ [2] Q: How do I check for outstanding loans on a property?           ║
+  ╚════════════════════════════════════════════════════════════════════╝
+
+    ⚠  Parse failed: malformed JSON — Expecting property name enclosed in double quotes: line 1 column 100 (char 99)
+    🔁  Retrying with stricter instruction …
+    ❌  Retry also failed: malformed JSON — Expecting value: line 1 column 1 (char 0)
+
+    ⚠️  Used fallback
+    ──────────────────────────────────────────────────
+    answer       : [Could not parse model response — malformed JSON — Expecting value: line 1 column 1 (char 0)]
+    source       : unknown
+    ──────────────────────────────────────────────────
+
+
+  ╔════════════════════════════════════════════════════════════════════╗
+  ║ [3] Q: Explain stamp duty calculation.                               ║
+  ╚════════════════════════════════════════════════════════════════════╝
+
+    ⚠  Parse failed: missing required fields: ['source']
+    🔁  Retrying with stricter instruction …
+
+    ✅  Parsed & validated successfully
+    ──────────────────────────────────────────────────
+    answer       : An NOC confirms no legal disputes on the property.
+    source       : No-Objection Certificate guidelines
+    ──────────────────────────────────────────────────
+
+
+  ╔════════════════════════════════════════════════════════════════════╗
+  ║ [4] Q: What is an NOC and why is it needed?                          ║
+  ╚════════════════════════════════════════════════════════════════════╝
+
+
+    ✅  Parsed & validated successfully
+    ──────────────────────────────────────────────────
+    answer       : Title deed, sale deed, and encumbrance certificate.
+    source       : Property Documentation Guide
+    ──────────────────────────────────────────────────
+
+
+  ╔════════════════════════════════════════════════════════════════════╗
+  ║ [5] Q: How to verify clear title of a property?                      ║
+  ╚════════════════════════════════════════════════════════════════════╝
+
+    ⚠  Parse failed: malformed JSON — Expecting property name enclosed in double quotes: line 1 column 100 (char 99)
+    🔁  Retrying with stricter instruction …
+    ❌  Retry also failed: malformed JSON — Expecting value: line 1 column 1 (char 0)
+
+    ⚠️  Used fallback
+    ──────────────────────────────────────────────────
+    answer       : [Could not parse model response — malformed JSON — Expecting value: line 1 column 1 (char 0)]
+    source       : unknown
+    ──────────────────────────────────────────────────
+
+
+  ╔════════════════════════════════════════════════════════════════════╗
+  ║ DEMONSTRATED CAPABILITIES                                            ║
+  ╚════════════════════════════════════════════════════════════════════╝
+
+    ✓ Task 1 : Prompt for a defined JSON structure
+              SYSTEM_PROMPT asks for {"answer", "source"}
+              Live mode uses response_format={"type": "json_object"}
+
+    ✓ Task 2 : Parse JSON into a usable object
+              json.loads() converts the raw string to a dict
+
+    ✓ Task 3 : Handle malformed JSON gracefully
+              json.JSONDecodeError caught — no unhandled crashes
+              Retry mechanism re-asks with stricter instruction
+
+    ✓ Task 4 : Validate required fields before use
+              Checks every key in ('answer', 'source') is present
+              Missing fields are reported explicitly
+
+    ✓ Task 5 : Commit with sample parsed results
+              Run with:  python scripts/structured_output.py
+              Live mode: OPENAI_API_KEY=... python scripts/structured_output.py
+

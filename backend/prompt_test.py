@@ -12,8 +12,7 @@ client = OpenAI(
     timeout=180,
 )
 
-model = os.getenv("OPENAI_MODEL")
-
+model = os.environ["OPENAI_MODEL"]
 
 def test_prompt(system_prompt, user_prompt):
     messages = [
