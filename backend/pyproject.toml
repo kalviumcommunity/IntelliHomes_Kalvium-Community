@@ -1,7 +1,15 @@
 [project]
 name = "backend"
-version = "0.1.0"
-description = "Backend for RAG"
+version = "0.2.0"
+description = "Backend for IntelliHomes RAG assistant — includes context-window-aware conversation history management"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "tiktoken>=0.5.0",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+demo-trim = "demo_chat:run_demo_with_args"
+demo-summarise = "demo_chat:run_demo_with_args"
