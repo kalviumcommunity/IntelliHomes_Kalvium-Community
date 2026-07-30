@@ -1,55 +1,54 @@
-import json
 import os
 
 from dotenv import load_dotenv
-from openai import AuthenticationError, OpenAI, RateLimitError
+from openai import OpenAI
+from prompts.renderer import render_prompt
 
 load_dotenv()
 
 client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY"),
     base_url=os.getenv("OPENAI_BASE_URL"),
-    timeout=300,
+    timeout=180,
 )
 
-model = os.environ["OPENAI_MODEL"]
+model = os.getenv("OPENAI_MODEL")
 
-messages = [
-    {
-        "role": "system",
-        "content": "You are IntelliHomes AI."
-    },
-    {
-        "role": "user",
-        "content": "List three property documents to verify."
-    }
-]
 
-print("===== REQUEST =====")
-print(json.dumps(messages, indent=2))
+def main():
+    system_prompt, user_prompt = render_prompt(
+        context="Buying residential property",
+        question="List three property documents to verify."
+    )
 
-print("\nSending request to Ollama...\n")
+    messages = [
+        {
+            "role": "system",
+            "content": system_prompt,
+        },
+        {
+            "role": "user",
+            "content": user_prompt,
+        },
+    ]
 
-try:
+    print("===== SYSTEM PROMPT =====")
+    print(system_prompt)
+
+    print("\n===== USER PROMPT =====")
+    print(user_prompt)
+
+    print("\nSending request...\n")
+
     response = client.chat.completions.create(
         model=model,
         messages=messages,
+        temperature=0,
     )
-
-    print("Response received!\n")
 
     print("===== RESPONSE =====")
     print(response.choices[0].message.content)
 
-    if response.usage:
-        print("\n===== TOKEN USAGE =====")
-        print(response.usage)
 
-except AuthenticationError:
-    print("❌ Authentication failed.")
-
-except RateLimitError:
-    print("❌ Rate limit exceeded.")
-
-except Exception as e:
-    print(f"❌ Unexpected error: {e}")
+if __name__ == "__main__":
+    main()

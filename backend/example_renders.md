@@ -1,4 +1,16 @@
-===== SYSTEM PROMPT =====
+# Prompt Template Example Renders
+
+## Example 1
+
+### Context
+
+Buying residential property
+
+### Question
+
+List three property documents to verify.
+
+### Rendered System Prompt
 
 You are IntelliHomes AI.
 
@@ -15,23 +27,24 @@ Rules:
 - If you don't know the answer, say:
 "I don't have enough information to answer confidently."
 
-
-===== USER PROMPT =====
+### Rendered User Prompt
 
 Question:
 List three property documents to verify.
 
+---
 
-Sending request...
+## Example 2
 
-===== RESPONSE =====
-When buying a residential property, it's essential to verify certain documents. Here are three key ones:
+### Context
 
-• **Title Deed**: Also known as a deed of conveyance, this document proves ownership and transfer of the property from seller to buyer.
-• **Property Survey Report**: This report confirms the property boundaries, any easements or encumbrances, and ensures there are no unexpected surprises.
-• **Building Plans and Permits**: These documents verify that the property was built in compliance with local building codes and regulations.
+Property registration
 
-===== SYSTEM PROMPT =====
+### Question
+
+What is a Title Deed?
+
+### Rendered System Prompt
 
 You are IntelliHomes AI.
 
@@ -48,8 +61,7 @@ Rules:
 - If you don't know the answer, say:
 "I don't have enough information to answer confidently."
 
-
-===== USER PROMPT =====
+### Rendered User Prompt
 
 Question:
 What is a Title Deed?
