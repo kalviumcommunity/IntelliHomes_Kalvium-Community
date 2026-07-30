@@ -1,55 +1,93 @@
 
+╔════════════════════════════════════════════════════════════════════╗
+║ DEMO: strategy = 'trim', budget = 800 tokens                         ║
+╚════════════════════════════════════════════════════════════════════╝
+  System prompt tokens : 43
+  Number of questions   : 12
+  RAG chunks enabled    : ✓
 
-******** PROMPT A ********
-
-===================================
-SYSTEM PROMPT
-===================================
-
-You are a helpful assistant.
-
-
-USER QUESTION
-List three property documents to verify.
-
-MODEL RESPONSE
-Here are three common property documents that you may need to verify:
-
-1. **Title Deed**: Also known as the deed of conveyance, this document proves ownership of the property and includes details such as the seller's name, buyer's name, purchase price, and any encumbrances (liens or mortgages).
-2. **Property Survey Report**: This document provides a detailed description of the property's boundaries, including measurements and any easements or restrictions that may affect the property.
-3. **Mortgage Deed** (if applicable): If there is an outstanding mortgage on the property, this document will show the lender's name, loan amount, interest rate, and repayment terms.
-
-Please note that these documents may vary depending on your location and specific circumstances. It's always a good idea to consult with a real estate expert or attorney for guidance on verifying property documents in your area.
-
-
-******** PROMPT B ********
-
-===================================
-SYSTEM PROMPT
-===================================
-
-You are IntelliHomes AI.
-
-Role:
-You assist staff with real estate questions.
-
-Scope:
-Only answer questions about property buying and documentation.
-
-Constraints:
-- Maximum 100 words
-- Use bullet points
-- Be professional
-- If unsure, say:
-"I don't have enough information to answer confidently."
+ Turn | Turns |  Before | Action       |   After | Msgs | Reply tokens
+---------------------------------------------------------------------------
+    1 |     1 |      43 | ─            |     201 |    3 |          100
+    2 |     2 |     201 | ─            |     339 |    5 |           91
+    3 |     3 |     339 | ─            |     521 |    7 |          111
+    4 |     4 |     521 | ─            |     686 |    9 |          112
+    5 |     5 |     686 | ─            |     841 |   11 |          100
+    6 |     5 |     841 | trim         |     825 |   11 |           91
+    7 |     5 |     825 | trim         |     850 |   11 |          111
+    8 |     5 |     850 | trim         |     831 |   11 |          112
+    9 |     5 |     831 | trim         |     817 |   11 |          100
+   10 |     5 |     817 | trim         |     804 |   11 |           91
+   11 |     5 |     804 | trim         |     822 |   11 |          111
+   12 |     5 |     822 | trim         |     834 |   11 |          112
 
 
-USER QUESTION
-List three property documents to verify.
+╔════════════════════════════════════════════════════════════════════╗
+║ FINAL STATE                                                          ║
+╚════════════════════════════════════════════════════════════════════╝
+  Strategy                      : trim
+  Token budget                  : 800
+  Total turns                   : 5
+  Messages in history           : 11
+  Total tokens in history       : 834
+  Over budget?                  : ⚠ YES
+  System message tokens         : 43
+  [1]      user : Retrieved context: Registration timeline: Pay stamp duty (1–2 days), appointment…
+  [2] assistant : An Encumbrance Certificate is a crucial legal document issued by the Sub-Registr…
+  [3]      user : Retrieved context: If title is unclear: request seller to clear defects, obtain …
+  [4] assistant : To verify property ownership you need several key documents. Start with the Titl…
+  [5]      user : Retrieved context: NOC is needed from: housing society, bank (if loan), municipa…
+  [6] assistant : Properties with outstanding loans will show encumbrances on the Encumbrance Cert…
+  [7]      user : Retrieved context: Litigation check: Search court records, check EC for pending …
+  [8] assistant : The property registration process involves several steps with the Sub-Registrar …
+  [9]      user : Retrieved context: Taxes on under-construction property: GST (5% on affordable, …
+  [10] assistant : An Encumbrance Certificate is a crucial legal document issued by the Sub-Registr…
 
-MODEL RESPONSE
-Here are three essential property documents to verify:
+Demo complete.
+========================================
+  SUMMARISE STRATEGY
+========================================
 
-• **Title Deed**: A document that proves ownership of the property and includes details such as the property's location, size, and any encumbrances.
-• **Property Survey Report**: A document that outlines the property's boundaries, dimensions, and any easements or covenants.
-• **Chain of Title**: A document that shows a record of all previous owners and transactions related to the property.
+╔════════════════════════════════════════════════════════════════════╗
+║ DEMO: strategy = 'summarise', budget = 800 tokens                    ║
+╚════════════════════════════════════════════════════════════════════╝
+  System prompt tokens : 43
+  Number of questions   : 12
+  RAG chunks enabled    : ✓
+
+ Turn | Turns |  Before | Action       |   After | Msgs | Reply tokens
+---------------------------------------------------------------------------
+    1 |     1 |      43 | ─            |     201 |    3 |          100
+    2 |     2 |     201 | ─            |     339 |    5 |           91
+    3 |     3 |     339 | ─            |     521 |    7 |          111
+    4 |     4 |     521 | ─            |     686 |    9 |          112
+    5 |     5 |     686 | ─            |     841 |   11 |          100
+    6 |     2 |     841 | summarise    |     402 |    5 |          111
+    7 |     3 |     402 | ─            |     566 |    7 |          112
+    8 |     4 |     566 | ─            |     717 |    9 |          100
+    9 |     5 |     717 | ─            |     859 |   11 |           91
+   10 |     2 |     859 | summarise    |     414 |    5 |          112
+   11 |     3 |     414 | ─            |     563 |    7 |          100
+   12 |     4 |     563 | ─            |     717 |    9 |           91
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║ FINAL STATE                                                          ║
+╚════════════════════════════════════════════════════════════════════╝
+  Strategy                      : summarise
+  Token budget                  : 800
+  Total turns                   : 4
+  Messages in history           : 9
+  Total tokens in history       : 717
+  Over budget?                  : ✓ No
+  System message tokens         : 43
+  [1] assistant : [Summary of earlier conversation]: The property registration process involves se…
+  [2] assistant : Properties with outstanding loans will show encumbrances on the Encumbrance Cert…
+  [3]      user : Retrieved context: NOC is needed from: housing society, bank (if loan), municipa…
+  [4] assistant : An Encumbrance Certificate is a crucial legal document issued by the Sub-Registr…
+  [5]      user : Retrieved context: Litigation check: Search court records, check EC for pending …
+  [6] assistant : To verify property ownership you need several key documents. Start with the Titl…
+  [7]      user : Retrieved context: Taxes on under-construction property: GST (5% on affordable, …
+  [8] assistant : Properties with outstanding loans will show encumbrances on the Encumbrance Cert…
+
+Demo complete.
