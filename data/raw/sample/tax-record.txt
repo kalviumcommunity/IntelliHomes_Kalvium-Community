@@ -1,0 +1,8 @@
+PROPERTY TAX RECORD
+------------------------------------
+Property ID: NDA-402-EMERALD
+Owner: Anita Sharma
+Financial Year: 2025-26
+Tax Assessed: INR 18,400
+Tax Paid: INR 18,400
+Status: PAID (no arrears)
