@@ -1,6 +1,6 @@
 # Embedding Vectors — What They Represent
 
-An **embedding vector** is a list of numbers that represents the *meaning* of a
+An **embedding vector** is a list of numbers that represents the _meaning_ of a
 piece of text. The embedding model was trained on billions of sentences so that
 the position of each vector in vector space encodes semantics:
 
@@ -17,14 +17,14 @@ the position of each vector in vector space encodes semantics:
   score them near zero.
 - **Not human-interpretable coordinates.** You cannot read one dimension in
   isolation (e.g. "dimension 42 = price"). Each dimension responds to a subtle
-  pattern the model learned; the *full pattern* carries the meaning.
+  pattern the model learned; the _full pattern_ carries the meaning.
 
 ## What they ARE
 
 A **dense coordinate system for semantics**. Think of each vector as a point on
 a high-dimensional sphere (768 dimensions for `nomic-embed-text`, 1536 for
-`text-embedding-3-small`). Meaning is the *position*, and similarity is the
-*direction* between positions.
+`text-embedding-3-small`). Meaning is the _position_, and similarity is the
+_direction_ between positions.
 
 ## Why this powers semantic search in RAG
 

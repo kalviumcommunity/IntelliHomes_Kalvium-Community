@@ -54,9 +54,9 @@ SIMULATED_DIM = 768
 # One pair with similar meaning, one clearly unrelated text, and a second
 # similar pair drawn from the IntelliHomes property domain.
 TEXTS = [
-    "How do I reset my account password?",                      # 0
-    "Steps to recover access to my login",                      # 1  (similar to 0)
-    "The cafeteria menu has pasta today",                       # 2  (dissimilar)
+    "How do I reset my account password?",  # 0
+    "Steps to recover access to my login",  # 1  (similar to 0)
+    "The cafeteria menu has pasta today",  # 2  (dissimilar)
     "What documents do I need to transfer property ownership?",  # 3
     "Steps to transfer the title of a property to a new owner",  # 4  (similar to 3)
 ]
@@ -80,7 +80,9 @@ def embed_live(texts: list[str]) -> list[list[float]]:
     """Embed *texts* with a real model via an OpenAI-compatible endpoint."""
     from openai import OpenAI
 
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", "ollama"), base_url=BASE_URL, timeout=120)
+    client = OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY", "ollama"), base_url=BASE_URL, timeout=120
+    )
     response = client.embeddings.create(model=EMBEDDING_MODEL, input=texts)
     ordered = sorted(response.data, key=lambda d: d.index)
     return [list(item.embedding) for item in ordered]
@@ -136,7 +138,9 @@ def build_report(embeddings: list[list[float]], live: bool) -> str:
         f"({'default: Ollama + %s' % EMBEDDING_MODEL if live else 'offline deterministic'})"
     )
     lines.append(f"Endpoint : {BASE_URL}")
-    lines.append(f"Model    : {EMBEDDING_MODEL if live else 'simulated fastText-style'}")
+    lines.append(
+        f"Model    : {EMBEDDING_MODEL if live else 'simulated fastText-style'}"
+    )
 
     # Task 1 + 2 — embeddings and dimension
     lines.append("\n" + "-" * 62)
@@ -182,9 +186,7 @@ def build_report(embeddings: list[list[float]], live: bool) -> str:
     lines.append("\n" + "=" * 62)
     lines.append("TASK 4 — WHAT DO THESE VECTORS REPRESENT?")
     lines.append("=" * 62)
-    lines.append(
-        textwrap.dedent(
-            """\
+    lines.append(textwrap.dedent("""\
 
             Each vector is a numeric representation of *meaning*. The model
             was trained so that texts about the same topic land close together
@@ -202,9 +204,7 @@ def build_report(embeddings: list[list[float]], live: bool) -> str:
             In RAG each chunk is embedded and stored in a vector database.
             A user question is embedded too, and retrieval becomes a
             nearest-neighbor search over chunk vectors.
-            """
-        )
-    )
+            """))
     lines.append("\n" + "=" * 62)
     return "\n".join(lines)
 
@@ -224,7 +224,10 @@ def main() -> None:
     report = build_report(embeddings, live=live)
     print(report)
 
-    out_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "embeddings_report.md")
+    out_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "embeddings_report.md",
+    )
     with open(out_path, "w", encoding="utf-8") as fh:
         fh.write(f"# Embeddings Report\n\n```text\n{report}\n```\n")
     print(f"\nReport saved to {out_path}")
