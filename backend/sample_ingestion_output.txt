@@ -1,0 +1,25 @@
+===== INGESTION STARTED =====
+
+✓ ownership.txt
+✓ property_guide.txt
+✓ taxes.txt
+
+===== SUMMARY =====
+Source documents : 3
+Ingested         : 3
+Failures         : 0
+Total chunks     : 7
+
+===== SAMPLE CHUNKS =====
+{'text': 'Property ownership should always be verified before purchase.', 'metadata': {'source': 'ownership.txt', 'section': 'Section 1', 'position': 0}}
+
+{'text': 'The seller should provide valid ownership records.', 'metadata': {'source': 'ownership.txt', 'section': 'Section 2', 'position': 1}}
+
+{'text': 'Buying property requires verifying ownership documents.', 'metadata': {'source': 'property_guide.txt', 'section': 'Section 1', 'position': 0}}
+
+{'text': 'A Title Deed confirms legal ownership.', 'metadata': {'source': 'property_guide.txt', 'section': 'Section 2', 'position': 1}}
+
+{'text': 'Property Tax Receipts confirm that all taxes have been paid.', 'metadata': {'source': 'taxes.txt', 'section': 'Section 1', 'position': 0}}
+
+{'text': 'Outstanding taxes should be cleared before purchase.', 'metadata': {'source': 'taxes.txt', 'section': 'Section 2', 'position': 1}}
+
