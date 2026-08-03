@@ -62,7 +62,6 @@ from chunking.metadata import attach_metadata  # noqa: E402
 from chunking.strategies import paragraph_chunk  # noqa: E402
 from ingestion.loader import load_folder, print_intake_report  # noqa: E402
 
-
 # ── Configuration (Task 3: everything from the environment) ───────────────
 
 BASE_URL = os.environ.get("OPENAI_BASE_URL", "http://localhost:11434/v1")
@@ -290,8 +289,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if EXPECTED_DIM and dim != int(EXPECTED_DIM):
         print(
-            f"ERROR: expected dimension {EXPECTED_DIM} "
-            f"but the API returned {dim}"
+            f"ERROR: expected dimension {EXPECTED_DIM} " f"but the API returned {dim}"
         )
         return 1
 
