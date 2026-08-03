@@ -14,3 +14,8 @@ dependencies = [
 [project.scripts]
 demo-trim = "demo_chat:run_demo_with_args"
 demo-summarise = "demo_chat:run_demo_with_args"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
