@@ -198,10 +198,10 @@ def _embed_batch_with_retry(
                 exc.retries_used = retries  # surfaced in the run summary
                 raise
             retries += 1
-            delay = base_delay * (2 ** (retries - 1)) + random.uniform(
-                0, base_delay
+            delay = base_delay * (2 ** (retries - 1)) + random.uniform(0, base_delay)
+            print(
+                f"    batch retry {retries}/{max_retries} after {delay:.1f}s — {exc!r}"
             )
-            print(f"    batch retry {retries}/{max_retries} after {delay:.1f}s — {exc!r}")
             sleep(delay)
 
 
@@ -245,7 +245,9 @@ def embed_live(
             stats["retries"] += retries
             vectors.extend(batch_vectors)
         except Exception as exc:  # noqa: BLE001 - recorded as a failure
-            print(f"    ERROR: batch {start // batch_size} failed after retries — {exc!r}")
+            print(
+                f"    ERROR: batch {start // batch_size} failed after retries — {exc!r}"
+            )
             stats["failed_batches"] += 1
             stats["failed_starts"].append(start)
             stats["retries"] += getattr(exc, "retries_used", 0)
@@ -291,10 +293,16 @@ def embed_corpus_chunks(
             )
             if any(v is not None for v in vectors):
                 return "live", vectors, stats
-            print("WARNING: live embedding failed for every batch; using offline fallback")
+            print(
+                "WARNING: live embedding failed for every batch; using offline fallback"
+            )
         except Exception as exc:  # noqa: BLE001 - endpoint unreachable etc.
             print(f"WARNING: live embedding failed ({exc}); using offline fallback")
-    return "simulated", embed_offline(texts), {"retries": 0, "failed_batches": 0, "failed_starts": []}
+    return (
+        "simulated",
+        embed_offline(texts),
+        {"retries": 0, "failed_batches": 0, "failed_starts": []},
+    )
 
 
 def attach_vectors(records: list[dict], vectors: list[list[float]]) -> list[dict]:
@@ -545,10 +553,17 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     texts = [r["text"] for r in to_embed]
-    mode, vectors, stats = "cached", [], {"retries": 0, "failed_batches": 0, "failed_starts": []}
+    mode, vectors, stats = (
+        "cached",
+        [],
+        {"retries": 0, "failed_batches": 0, "failed_starts": []},
+    )
     if texts:
         mode, vectors, stats = embed_corpus_chunks(
-            texts, batch_size=BATCH_SIZE, max_retries=MAX_RETRIES, base_delay=RETRY_BASE_DELAY
+            texts,
+            batch_size=BATCH_SIZE,
+            max_retries=MAX_RETRIES,
+            base_delay=RETRY_BASE_DELAY,
         )
         print(
             f"\nEmbedded {len(texts)} chunks "
@@ -562,7 +577,9 @@ def main(argv: list[str] | None = None) -> int:
     for rec, vec in zip(to_embed, vectors):
         if vec is None:
             failures += 1
-            print(f"  FAILED chunk {rec['id']} — retries exhausted, excluded from store")
+            print(
+                f"  FAILED chunk {rec['id']} — retries exhausted, excluded from store"
+            )
             continue
         rec["vector"] = vec
         stored.append(rec)

@@ -345,9 +345,7 @@ def test_partition_cached_skips_matching_and_reembeds_changed(tmp_path):
 def test_existing_records_reads_previous_store(tmp_path):
     path = tmp_path / "store.json"
     assert existing_records(path) == {}  # no store yet
-    save_store(
-        {"records": [{"id": "a.txt#0", "text": "x", "vector": [1.0]}]}, path
-    )
+    save_store({"records": [{"id": "a.txt#0", "text": "x", "vector": [1.0]}]}, path)
     records = existing_records(path)
     assert records["a.txt#0"]["text"] == "x"
 
@@ -355,7 +353,9 @@ def test_existing_records_reads_previous_store(tmp_path):
 def test_main_rerun_skips_cached_chunks(tmp_path, monkeypatch, capsys):
     corpus = tmp_path / "corpus"
     corpus.mkdir()
-    (corpus / "doc.txt").write_text("Alpha paragraph.\n\nBeta paragraph.", encoding="utf-8")
+    (corpus / "doc.txt").write_text(
+        "Alpha paragraph.\n\nBeta paragraph.", encoding="utf-8"
+    )
 
     def fake_embedder(texts, **kwargs):
         vectors = [[float(i)] * 3 for i in range(len(texts))]
