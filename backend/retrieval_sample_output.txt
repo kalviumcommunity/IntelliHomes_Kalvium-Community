@@ -1,0 +1,76 @@
+==============================================================
+TOP-K RETRIEVAL — QUERY -> CHROMA VECTOR STORE
+==============================================================
+Query       : 'What document proves legal ownership of a property?'
+Mode        : simulated
+Model       : nomic-embed-text
+Corpus      : cleaned_corpus (3 chunks)
+Endpoint    : http://localhost:11434/v1
+Vector dim  : 768
+
+--------------------------------------------------------------
+TASK 1 — EMBED THE USER QUERY (same model as the chunks)
+--------------------------------------------------------------
+
+Query vector first 8 values:
+  [+0.0000, +0.0000, +0.0000, +0.0000, +0.0000, +0.0000, +0.0000, +0.0000, …]  (len 768)
+
+--------------------------------------------------------------
+TASKS 2 + 3 — TOP-1 SEARCH (k requested=1, returned=1, chunks in DB=3)
+--------------------------------------------------------------
+
+[1] property_guide.txt#0
+    score    : +0.6338 (cosine similarity; distance 0.3662)
+    metadata : position=0, section=Section 1, source=property_guide.txt
+    text     : 'Buying property requires verifying ownership documents.\r\n\r\nA Title Deed confirms legal ownership.\r\n\r\nA Survey Plan defines property boundaries.'
+
+--------------------------------------------------------------
+TASKS 2 + 3 — TOP-3 SEARCH (k requested=3, returned=3, chunks in DB=3)
+--------------------------------------------------------------
+
+[1] property_guide.txt#0
+    score    : +0.6338 (cosine similarity; distance 0.3662)
+    metadata : position=0, section=Section 1, source=property_guide.txt
+    text     : 'Buying property requires verifying ownership documents.\r\n\r\nA Title Deed confirms legal ownership.\r\n\r\nA Survey Plan defines property boundaries.'
+
+[2] ownership.txt#0
+    score    : +0.4819 (cosine similarity; distance 0.5181)
+    metadata : position=0, section=Section 1, source=ownership.txt
+    text     : 'Property ownership should always be verified before purchase.\r\n\r\nThe seller should provide valid ownership records.'
+
+[3] taxes.txt#0
+    score    : +0.2056 (cosine similarity; distance 0.7944)
+    metadata : position=0, section=Section 1, source=taxes.txt
+    text     : 'Property Tax Receipts confirm that all taxes have been paid.\r\n\r\nOutstanding taxes should be cleared before purchase.'
+
+--------------------------------------------------------------
+TASKS 2 + 3 — TOP-5 SEARCH (k requested=5, returned=3, chunks in DB=3)
+--------------------------------------------------------------
+
+[1] property_guide.txt#0
+    score    : +0.6338 (cosine similarity; distance 0.3662)
+    metadata : position=0, section=Section 1, source=property_guide.txt
+    text     : 'Buying property requires verifying ownership documents.\r\n\r\nA Title Deed confirms legal ownership.\r\n\r\nA Survey Plan defines property boundaries.'
+
+[2] ownership.txt#0
+    score    : +0.4819 (cosine similarity; distance 0.5181)
+    metadata : position=0, section=Section 1, source=ownership.txt
+    text     : 'Property ownership should always be verified before purchase.\r\n\r\nThe seller should provide valid ownership records.'
+
+[3] taxes.txt#0
+    score    : +0.2056 (cosine similarity; distance 0.7944)
+    metadata : position=0, section=Section 1, source=taxes.txt
+    text     : 'Property Tax Receipts confirm that all taxes have been paid.\r\n\r\nOutstanding taxes should be cleared before purchase.'
+
+--------------------------------------------------------------
+TASK 4 — HOW THE RESULTS CHANGE WITH k
+--------------------------------------------------------------
+
+  k  | returned | top-1 id                | top-1 score
+  ---+----------+-------------------------+------------
+   1 |        1 | property_guide.txt#0    | +0.6338
+   3 |        3 | property_guide.txt#0    | +0.6338
+   5 |        3 | property_guide.txt#0    | +0.6338
+
+Top-1 chunk is identical for k=1 and k=5: True
+Increasing k widens the retrieved context (more chunks returned); the ranking of the top results stays stable, and k is clamped to the number of chunks in the collection.
