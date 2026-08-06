@@ -5,13 +5,13 @@ Corpus      : cleaned_corpus
 Documents   : 3
 Endpoint    : http://localhost:11434/v1
 Model       : nomic-embed-text
-Mode        : live
+Mode        : simulated
 
 --------------------------------------------------------------
 TASK 1 — VECTORS RETURNED WITH EXPECTED DIMENSION
 --------------------------------------------------------------
 
-Chunks embedded      : 7
+Chunks embedded      : 3
 Vector length        : 768
 All vectors same len : True
 
@@ -20,46 +20,26 @@ TASK 2 — SAMPLE VECTOR VALUES
 --------------------------------------------------------------
 
 first chunk 'ownership.txt#0' first 8 values:
-  [+0.0848, +0.0028, -0.1704, +0.0074, +0.0431, +0.0086, +0.0230, +0.0529, …]
+  [+0.0000, +0.0000, +0.0000, +0.0000, +0.1455, +0.0000, +0.0000, +0.0000, …]
 
 --------------------------------------------------------------
 TASK 3 — STORED RECORDS (text + metadata + trimmed vector)
 --------------------------------------------------------------
 
 [0] ownership.txt#0
-    text     : 'Property ownership should always be verified before purchase.'
+    text     : 'Property ownership should always be verified before purchase.\r\n\r\nThe seller should provide valid ownership records.'
     metadata : {'source': 'ownership.txt', 'section': 'Section 1', 'position': 0}
-    vector   : [ +0.0848, +0.0028, -0.1704, +0.0074, …, -0.0813, -0.0084 ] (len 768)
+    vector   : [ +0.0000, +0.0000, +0.0000, +0.0000, …, +0.0000, +0.0000 ] (len 768)
 
-[1] ownership.txt#1
-    text     : 'The seller should provide valid ownership records.'
-    metadata : {'source': 'ownership.txt', 'section': 'Section 2', 'position': 1}
-    vector   : [ +0.0165, +0.0160, -0.1767, -0.0270, …, -0.0402, -0.0026 ] (len 768)
-
-[2] property_guide.txt#0
-    text     : 'Buying property requires verifying ownership documents.'
+[1] property_guide.txt#0
+    text     : 'Buying property requires verifying ownership documents.\r\n\r\nA Title Deed confirms legal ownership.\r\n\r\nA Survey Plan defines property boundaries.'
     metadata : {'source': 'property_guide.txt', 'section': 'Section 1', 'position': 0}
-    vector   : [ +0.0535, +0.0012, -0.1650, -0.0006, …, -0.0587, +0.0075 ] (len 768)
+    vector   : [ +0.0000, +0.0000, +0.0611, +0.0000, …, +0.0000, +0.0000 ] (len 768)
 
-[3] property_guide.txt#1
-    text     : 'A Title Deed confirms legal ownership.'
-    metadata : {'source': 'property_guide.txt', 'section': 'Section 2', 'position': 1}
-    vector   : [ +0.0753, +0.0109, -0.1532, -0.0060, …, -0.0996, -0.0103 ] (len 768)
-
-[4] property_guide.txt#2
-    text     : 'A Survey Plan defines property boundaries.'
-    metadata : {'source': 'property_guide.txt', 'section': 'Section 3', 'position': 2}
-    vector   : [ +0.0779, +0.0156, -0.1378, -0.0593, …, -0.0721, -0.0278 ] (len 768)
-
-[5] taxes.txt#0
-    text     : 'Property Tax Receipts confirm that all taxes have been paid.'
+[2] taxes.txt#0
+    text     : 'Property Tax Receipts confirm that all taxes have been paid.\r\n\r\nOutstanding taxes should be cleared before purchase.'
     metadata : {'source': 'taxes.txt', 'section': 'Section 1', 'position': 0}
-    vector   : [ +0.1032, -0.0255, -0.1831, -0.0330, …, -0.0222, +0.0001 ] (len 768)
-
-[6] taxes.txt#1
-    text     : 'Outstanding taxes should be cleared before purchase.'
-    metadata : {'source': 'taxes.txt', 'section': 'Section 2', 'position': 1}
-    vector   : [ +0.0614, +0.0294, -0.1705, +0.0137, …, -0.0524, -0.0346 ] (len 768)
+    vector   : [ +0.0000, +0.0000, +0.0000, +0.0000, …, +0.0000, +0.0000 ] (len 768)
 
 --------------------------------------------------------------
 TASK 4 — RUN SUMMARY (batching, retries, cost, skips)
@@ -67,23 +47,23 @@ TASK 4 — RUN SUMMARY (batching, retries, cost, skips)
 
 RUN SUMMARY
 ===========
-Total chunks      : 7
-Embedded          : 7
+Total chunks      : 3
+Embedded          : 3
 Skipped (cached)  : 0
 Failed            : 0
 Retries (live)    : 0
 Batches           : 1 (batch size 64)
-Mode / model      : live (nomic-embed-text)
-Approx. tokens    : 60
+Mode / model      : simulated (nomic-embed-text)
+Approx. tokens    : 50
 Price / 1M tokens : $0.0000
 Approx. cost      : $0.00 (assumed free — local model, or set EMBEDDING_PRICE_PER_1M)
-Store             : /home/jeevan/Projects/IntelliHomes_Kalvium-Community/data/embeddings/cleaned_corpus-embeddings.json
+Store             : C:\Users\ain kay\IntelliHomes_Kalvium-Community\data\embeddings\cleaned_corpus-embeddings.json
 
 ==============================================================
 SUMMARY
 ==============================================================
 
-Chunks embedded : 7
+Chunks embedded : 3
 Vector length   : 768
 All same length : True
-Store written to: /home/jeevan/Projects/IntelliHomes_Kalvium-Community/data/embeddings/cleaned_corpus-embeddings.json
+Store written to: C:\Users\ain kay\IntelliHomes_Kalvium-Community\data\embeddings\cleaned_corpus-embeddings.json
