@@ -1,0 +1,6 @@
+{'ids': ['chunk_1'], 'embeddings': None, 'documents': ['A Title Deed confirms legal ownership.'], 'uris': None, 'included': ['metadatas', 'documents'], 'data': None, 'metadatas': [{'source': 'property_guide.txt', 'chunk_index': 1, 'section': 'Section 2'}]}
+
+ID: chunk_1
+Vector length: 384
+Text: A Title Deed confirms legal ownership.
+Metadata: {'source': 'property_guide.txt', 'chunk_index': 1, 'section': 'Section 2'}
