@@ -76,7 +76,9 @@ def default_store_path() -> Path:
     if EMBEDDINGS_STORE:
         p = Path(EMBEDDINGS_STORE).expanduser()
         return p if p.is_absolute() else BACKEND_ROOT / p
-    return BACKEND_ROOT.parent / "data" / "embeddings" / "cleaned_corpus-embeddings.json"
+    return (
+        BACKEND_ROOT.parent / "data" / "embeddings" / "cleaned_corpus-embeddings.json"
+    )
 
 
 def store_header(store_path: str | Path | None = None) -> dict:
@@ -192,9 +194,7 @@ def search(
         # Match the embedding backend that produced the indexed chunks, so
         # the query vector and the chunk vectors live in the same space.
         mode = store.get("mode")
-    model = store.get("model") or os.environ.get(
-        "EMBEDDING_MODEL", "nomic-embed-text"
-    )
+    model = store.get("model") or os.environ.get("EMBEDDING_MODEL", "nomic-embed-text")
 
     _, vectors, _stats = embed_query([query], mode=mode)
     vector = vectors[0]

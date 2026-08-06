@@ -77,7 +77,9 @@ def store_path(tmp_path):
 
 def test_search_returns_top_k_sorted_by_score(collection):
     _, col = collection
-    result = search("how do I pay property taxes", k=2, client=collection[0], name=col.name)
+    result = search(
+        "how do I pay property taxes", k=2, client=collection[0], name=col.name
+    )
     assert len(result["results"]) == 2
     scores = [hit["score"] for hit in result["results"]]
     assert scores == sorted(scores, reverse=True)
@@ -87,7 +89,9 @@ def test_search_returns_top_k_sorted_by_score(collection):
 
 def test_search_includes_scores_text_and_metadata(collection):
     _, col = collection
-    result = search("how do I pay property taxes", k=1, client=collection[0], name=col.name)
+    result = search(
+        "how do I pay property taxes", k=1, client=collection[0], name=col.name
+    )
     hit = result["results"][0]
     assert isinstance(hit["id"], str) and hit["id"]
     assert isinstance(hit["text"], str) and hit["text"]
@@ -158,5 +162,7 @@ def test_store_header_returns_empty_for_missing_store(tmp_path):
 
 def test_relevant_query_ranks_the_right_document(collection):
     _, col = collection
-    result = search("how do I pay property taxes", k=1, client=collection[0], name=col.name)
+    result = search(
+        "how do I pay property taxes", k=1, client=collection[0], name=col.name
+    )
     assert result["results"][0]["id"] == "b.txt#0"

@@ -137,8 +137,10 @@ def build_report(data: dict) -> str:
     lines.append(f"Mode        : {data['mode']}")
     lines.append(f"Model       : {data['model']}")
     if data["store"].get("corpus"):
-        lines.append(f"Corpus      : {data['store']['corpus']} "
-                     f"({data['store'].get('chunk_count', '?')} chunks)")
+        lines.append(
+            f"Corpus      : {data['store']['corpus']} "
+            f"({data['store'].get('chunk_count', '?')} chunks)"
+        )
     if data["store"].get("endpoint"):
         lines.append(f"Endpoint    : {data['store']['endpoint']}")
     lines.append(f"Vector dim  : {data['dim']}")
@@ -163,8 +165,10 @@ def build_report(data: dict) -> str:
             continue
         for i, hit in enumerate(result["results"], start=1):
             lines.append(f"\n[{i}] {hit['id']}")
-            lines.append(f"    score    : {hit['score']:+.4f} "
-                         f"(cosine similarity; distance {hit['distance']:.4f})")
+            lines.append(
+                f"    score    : {hit['score']:+.4f} "
+                f"(cosine similarity; distance {hit['distance']:.4f})"
+            )
             lines.append(f"    metadata : {_format_metadata(hit['metadata'])}")
             lines.append(f"    text     : {hit['text']!r}")
 
@@ -188,8 +192,9 @@ def build_report(data: dict) -> str:
     if len(k_sorted) >= 2:
         first, last = k_sorted[0], k_sorted[-1]
         same_top = tops[first] == tops[last]
-        lines.append(f"\nTop-1 chunk is identical for k={first} and k={last}: "
-                     f"{same_top}")
+        lines.append(
+            f"\nTop-1 chunk is identical for k={first} and k={last}: " f"{same_top}"
+        )
         lines.append(
             "Increasing k widens the retrieved context (more chunks returned); "
             "the ranking of the top results stays stable, and k is clamped to "
