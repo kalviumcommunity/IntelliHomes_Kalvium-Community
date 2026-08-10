@@ -70,7 +70,9 @@ def _hybrid(collection, query, k=10, **kwargs):
 
 
 def test_search_with_category_filter_restricts_results(collection):
-    result = _search(collection, "clubhouse booking", metadata_filter={"category": "community"})
+    result = _search(
+        collection, "clubhouse booking", metadata_filter={"category": "community"}
+    )
     assert result["total_chunks"] == 5
     assert result["total_matching"] == 1
     assert result["metadata_filter"] == {"category": "community"}
@@ -97,7 +99,9 @@ def test_unfiltered_search_has_no_filter_and_counts_everything(collection):
 def test_filtered_search_scopes_out_other_categories(collection):
     query = "how do I book the clubhouse for an event"
     plain = _search(collection, query, k=4)
-    filtered = _search(collection, query, k=4, metadata_filter={"category": "community"})
+    filtered = _search(
+        collection, query, k=4, metadata_filter={"category": "community"}
+    )
     # Unfiltered returns chunks from every category…
     assert len(plain["results"]) == 4
     assert {hit["metadata"]["category"] for hit in plain["results"]} == {
@@ -108,7 +112,9 @@ def test_filtered_search_scopes_out_other_categories(collection):
     }
     # …while the filtered search only returns the matching category.
     assert {hit["id"] for hit in filtered["results"]} == {"community.txt#0"}
-    assert all(hit["metadata"]["category"] == "community" for hit in filtered["results"])
+    assert all(
+        hit["metadata"]["category"] == "community" for hit in filtered["results"]
+    )
 
 
 def test_filter_improves_precision_over_plain_top_k(collection):

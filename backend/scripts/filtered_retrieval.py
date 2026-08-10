@@ -77,7 +77,9 @@ FILTER_QUERY = os.environ.get(
 FILTER_SOURCE = os.environ.get("FILTER_SOURCE", "meeting-notes.md")
 FILTER_CATEGORY = os.environ.get("FILTER_CATEGORY", "community")
 HYBRID_QUERY = os.environ.get("HYBRID_QUERY", "inspection report INSP-2024-001")
-FILTERED_OUTPUT = os.environ.get("FILTERED_OUTPUT", "filtered_retrieval_sample_output.txt")
+FILTERED_OUTPUT = os.environ.get(
+    "FILTERED_OUTPUT", "filtered_retrieval_sample_output.txt"
+)
 
 # Ground truth: which chunk ids answer each evaluation query. Used by TASK 4
 # to measure precision@k of plain, filtered and hybrid retrieval.
@@ -128,9 +130,7 @@ def run_demo(*, k: int | None = None) -> dict:
 
     # TASK 1 — what filters exist, and how the filtered search behaves.
     available = metadata_value_counts()
-    source_filtered = search(
-        FILTER_QUERY, k, metadata_filter={"source": FILTER_SOURCE}
-    )
+    source_filtered = search(FILTER_QUERY, k, metadata_filter={"source": FILTER_SOURCE})
     category_filtered = search(
         FILTER_QUERY, k, metadata_filter={"category": FILTER_CATEGORY}
     )
@@ -252,7 +252,9 @@ def build_report(data: dict) -> str:
     lines.append("TASK 1 — METADATA FILTERS: WHAT CAN RETRIEVAL BE SCOPED TO?")
     lines.append("-" * 62)
     for key, values in sorted(data["available_filters"].items()):
-        pairs = ", ".join(f"{value} (x{count})" for value, count in sorted(values.items()))
+        pairs = ", ".join(
+            f"{value} (x{count})" for value, count in sorted(values.items())
+        )
         lines.append(f"  {key:<10}: {pairs}")
 
     src = data["task1"]["source_search"]
@@ -344,9 +346,7 @@ def build_report(data: dict) -> str:
     lines.append(
         f"\n  precision@{k} = (# retrieved chunks that are ground-truth relevant) / {k}"
     )
-    header = (
-        f"  {'case':<32} {'plain':>7} {'filtered':>9} {'hybrid':>7}"
-    )
+    header = f"  {'case':<32} {'plain':>7} {'filtered':>9} {'hybrid':>7}"
     lines.append(header)
     lines.append("  " + "-" * (len(header) - 2))
     for row in data["task4"]["precision_rows"]:
