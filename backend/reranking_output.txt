@@ -1,0 +1,35 @@
+===== RETRIEVAL + RE-RANKING =====
+
+Query:
+What documents should I verify before buying a property?
+
+===== INITIAL CANDIDATES =====
+
+Rank 1
+ID: chunk_1
+Vector score: 129.5439
+Source: property_guide.txt
+Metadata: {'source': 'property_guide.txt', 'section': 'Section 2', 'chunk_index': 1}
+Text: A Title Deed confirms legal ownership.
+
+===== AFTER RE-RANKING =====
+
+Rank 1
+ID: chunk_1
+Original vector score: 129.5439
+Re-rank score: 1
+Matched words: ['a']
+Source: property_guide.txt
+Metadata: {'source': 'property_guide.txt', 'section': 'Section 2', 'chunk_index': 1}
+Text: A Title Deed confirms legal ownership.
+
+===== FINAL TOP 3 =====
+
+Final Rank 1
+ID: chunk_1
+Source: property_guide.txt
+Text: A Title Deed confirms legal ownership.
+Metadata: {'source': 'property_guide.txt', 'section': 'Section 2', 'chunk_index': 1}
+Vector score: 129.5439
+Re-rank score: 1
+
