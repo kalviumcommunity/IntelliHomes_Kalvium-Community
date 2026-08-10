@@ -46,6 +46,13 @@ hardcoded):
                                if the API returns vectors of a different size.
     CORPUS_DIR                 Folder with the prepared corpus
                                (default: cleaned_corpus).
+    EMBEDDING_MODE             Force the embedding backend: "live", "simulated"
+                               or "" (default) to try the live endpoint and
+                               fall back to the offline embedder.
+    SOURCE_CATEGORIES_JSON     JSON object mapping source file -> category,
+                               attached to each chunk's metadata so retrieval
+                               can filter by document type/topic (overrides
+                               the built-in SOURCE_CATEGORIES table).
     EMBEDDING_OUTPUT           Path for the JSON vector store
                                (default: ../data/embeddings/<corpus>-embeddings.json).
     SAMPLE_OUTPUT              Path for the sample verification output
@@ -100,8 +107,23 @@ EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "nomic-embed-text")
 API_KEY = os.environ.get("OPENAI_API_KEY", "ollama")  # Ollama accepts any key
 EXPECTED_DIM = os.environ.get("EMBEDDING_DIM")  # optional validation
 CORPUS_DIR = os.environ.get("CORPUS_DIR", "cleaned_corpus")
+EMBEDDING_MODE = os.environ.get("EMBEDDING_MODE", "").lower()  # "" | live | simulated
 EMBEDDING_OUTPUT = os.environ.get("EMBEDDING_OUTPUT", "")  # "" -> default
 SAMPLE_OUTPUT = os.environ.get("SAMPLE_OUTPUT", "")
+
+# Optional per-source category labels attached to each chunk's metadata, so
+# retrieval can scope searches to a document type/topic (a `where` filter on
+# "category"). Override or extend via SOURCE_CATEGORIES_JSON.
+SOURCE_CATEGORIES = {
+    "ownership.txt": "legal",
+    "property_guide.txt": "legal",
+    "taxes.txt": "tax",
+    "meeting-notes.md": "community",
+    "inspection_report.txt": "inspection",
+}
+_categories_override = os.environ.get("SOURCE_CATEGORIES_JSON", "")
+if _categories_override:
+    SOURCE_CATEGORIES = json.loads(_categories_override)
 
 # Batch pipeline tuning.
 BATCH_SIZE = int(os.environ.get("EMBEDDING_BATCH_SIZE", "64"))
@@ -129,8 +151,12 @@ def _resolve(path: str, default: Path) -> Path:
 # ── Task 2: chunking with retrieval metadata ──────────────────────────────
 
 
-def chunk_corpus(documents: list) -> list[dict]:
+def chunk_corpus(documents: list, categories: dict | None = None) -> list[dict]:
     """Split documents into chunks and attach source/section/position metadata.
+
+    *categories* maps ``source -> category`` (defaults to
+    :data:`SOURCE_CATEGORIES`); the category is added to each chunk's metadata
+    when present, so retrieval can filter by document type/topic.
 
     Returns one record per chunk::
 
@@ -138,11 +164,17 @@ def chunk_corpus(documents: list) -> list[dict]:
          "text": "…",
          "metadata": {"source": "ownership.txt",
                       "section": "Section 1",
-                      "position": 0}}
+                      "position": 0,
+                      "category": "legal"}}
     """
+    if categories is None:
+        categories = SOURCE_CATEGORIES
     records: list[dict] = []
     for doc in documents:
-        for item in attach_metadata(paragraph_chunk(doc.text), doc.source):
+        category = (categories or {}).get(doc.source)
+        for item in attach_metadata(
+            paragraph_chunk(doc.text), doc.source, category=category
+        ):
             records.append(
                 {
                     "id": f"{doc.source}#{item['metadata']['position']}",
@@ -559,8 +591,12 @@ def main(argv: list[str] | None = None) -> int:
         {"retries": 0, "failed_batches": 0, "failed_starts": []},
     )
     if texts:
+        # EMBEDDING_MODE: "simulated" forces the offline embedder; "" (default)
+        # and "live" use the live endpoint (with offline fallback when empty).
+        use_live = EMBEDDING_MODE != "simulated"
         mode, vectors, stats = embed_corpus_chunks(
             texts,
+            use_live=use_live,
             batch_size=BATCH_SIZE,
             max_retries=MAX_RETRIES,
             base_delay=RETRY_BASE_DELAY,
