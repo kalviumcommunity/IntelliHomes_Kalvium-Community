@@ -1,0 +1,146 @@
+==============================================================
+FILTERED + HYBRID RETRIEVAL — METADATA FILTERS & KEYWORD MATCH
+==============================================================
+Mode / model : simulated (nomic-embed-text)
+Vector dim   : 768
+Chunks in DB : 14
+
+--------------------------------------------------------------
+TASK 1 — METADATA FILTERS: WHAT CAN RETRIEVAL BE SCOPED TO?
+--------------------------------------------------------------
+  category  : community (x4), inspection (x3), legal (x5), tax (x2)
+  position  : 0 (x5), 1 (x5), 2 (x3), 3 (x1)
+  section   : Section 1 (x5), Section 2 (x5), Section 3 (x3), Section 4 (x1)
+  source    : inspection_report.txt (x3), meeting-notes.md (x4), ownership.txt (x2), property_guide.txt (x3), taxes.txt (x2)
+
+  Filtered by source:
+    search('What are the swimming pool hours and how do residents book the clubhouse?', k=3, metadata_filter={'source': 'meeting-notes.md'})
+    -> 3 of 4 matching chunks returned
+  [1] meeting-notes.md#1
+      score    : +0.6086
+      metadata : category=community, position=1, section=Section 2, source=meeting-notes.md
+      text     : 'Swimming pool timings are 6 AM to 10 PM, and residents must show their access card at the gate.'
+  [2] meeting-notes.md#2
+      score    : +0.4622
+      metadata : category=community, position=2, section=Section 3, source=meeting-notes.md
+      text     : 'Clubhouse bookings for private events are handled through the community portal and require 48 hours notice.'
+  [3] meeting-notes.md#0
+      score    : +0.1805
+      metadata : category=community, position=0, section=Section 1, source=meeting-notes.md
+      text     : 'Community meeting notes: the board approved the annual maintenance fee of 1500 per quarter, payable to the HOA account.'
+
+  Filtered by category:
+    search('What are the swimming pool hours and how do residents book the clubhouse?', k=3, metadata_filter={'category': 'community'})
+    -> 3 of 4 matching chunks returned
+  [1] meeting-notes.md#1
+      score    : +0.6086
+      metadata : category=community, position=1, section=Section 2, source=meeting-notes.md
+      text     : 'Swimming pool timings are 6 AM to 10 PM, and residents must show their access card at the gate.'
+  [2] meeting-notes.md#2
+      score    : +0.4622
+      metadata : category=community, position=2, section=Section 3, source=meeting-notes.md
+      text     : 'Clubhouse bookings for private events are handled through the community portal and require 48 hours notice.'
+  [3] meeting-notes.md#0
+      score    : +0.1805
+      metadata : category=community, position=0, section=Section 1, source=meeting-notes.md
+      text     : 'Community meeting notes: the board approved the annual maintenance fee of 1500 per quarter, payable to the HOA account.'
+
+--------------------------------------------------------------
+TASK 2 — SAME QUERY, WITH AND WITHOUT THE FILTER
+--------------------------------------------------------------
+
+  Query: 'What are the swimming pool hours and how do residents book the clubhouse?' (k=3)
+
+  Unfiltered — every chunk competes:
+  [1] meeting-notes.md#1
+      score    : +0.6086
+      metadata : category=community, position=1, section=Section 2, source=meeting-notes.md
+      text     : 'Swimming pool timings are 6 AM to 10 PM, and residents must show their access card at the gate.'
+  [2] meeting-notes.md#2
+      score    : +0.4622
+      metadata : category=community, position=2, section=Section 3, source=meeting-notes.md
+      text     : 'Clubhouse bookings for private events are handled through the community portal and require 48 hours notice.'
+  [3] inspection_report.txt#1
+      score    : +0.2675
+      metadata : category=inspection, position=1, section=Section 2, source=inspection_report.txt
+      text     : 'The roof was replaced in 2022 and the electrical wiring was upgraded to code in 2023.'
+
+  Filtered — only category=community chunks compete:
+  [1] meeting-notes.md#1
+      score    : +0.6086
+      metadata : category=community, position=1, section=Section 2, source=meeting-notes.md
+      text     : 'Swimming pool timings are 6 AM to 10 PM, and residents must show their access card at the gate.'
+  [2] meeting-notes.md#2
+      score    : +0.4622
+      metadata : category=community, position=2, section=Section 3, source=meeting-notes.md
+      text     : 'Clubhouse bookings for private events are handled through the community portal and require 48 hours notice.'
+  [3] meeting-notes.md#0
+      score    : +0.1805
+      metadata : category=community, position=0, section=Section 1, source=meeting-notes.md
+      text     : 'Community meeting notes: the board approved the annual maintenance fee of 1500 per quarter, payable to the HOA account.'
+
+  Comparison:
+    unfiltered top-3: ['meeting-notes.md#1', 'meeting-notes.md#2', 'inspection_report.txt#1']
+    filtered   top-3: ['meeting-notes.md#1', 'meeting-notes.md#2', 'meeting-notes.md#0']
+    -> the filtered search answers from the right category only; legal/tax/inspection chunks are excluded before ranking, so every returned chunk is on-topic for a community query.
+
+--------------------------------------------------------------
+TASK 3 — HYBRID MATCHING: VECTOR + KEYWORD SCORES
+--------------------------------------------------------------
+
+  Query: 'inspection report INSP-2024-001' (k=3)
+  hybrid_score = vector_weight * cosine_score + keyword_weight * keyword_score
+  weights: vector=1.0, keyword=0.3 (9 candidates re-ranked)
+
+  Vector-only top-k (cosine similarity):
+  [1] inspection_report.txt#0    vector +0.6655
+  [2] inspection_report.txt#2    vector +0.2652
+  [3] inspection_report.txt#1    vector +0.1926
+
+  Hybrid top-k (vector + keyword):
+  [1] inspection_report.txt#0    vector +0.6655 | keyword +1.0000 | combined +0.9655
+  [2] inspection_report.txt#2    vector +0.2652 | keyword +0.2000 | combined +0.3252
+  [3] inspection_report.txt#1    vector +0.1926 | keyword +0.0000 | combined +0.1926
+
+  Keyword component per hybrid hit:
+    inspection_report.txt#0
+      vector +0.6655 + keyword +1.0000 = +0.9655  text: 'Inspection report INSP-2024-001 for 42 Maple Street: the property was inspected on 2026-06-18 and no structural issues were found.'
+    inspection_report.txt#2
+      vector +0.2652 + keyword +0.2000 = +0.3252  text: 'The inspector recommends a follow-up visit after the rainy season.'
+    inspection_report.txt#1
+      vector +0.1926 + keyword +0.0000 = +0.1926  text: 'The roof was replaced in 2022 and the electrical wiring was upgraded to code in 2023.'
+  -> the exact inspection ID INSP-2024-001 lifts its chunk from vector 0.6655 to combined 0.9655; the keyword component separates the exact-ID chunk from topically similar chunks that lack the ID.
+
+--------------------------------------------------------------
+TASK 4 — PRECISION@k: FILTERED + HYBRID vs PLAIN TOP-k
+--------------------------------------------------------------
+
+  precision@3 = (# retrieved chunks that are ground-truth relevant) / 3
+  case                               plain  filtered  hybrid
+  ----------------------------------------------------------
+  community amenities                0.667     0.667   0.667
+  tax documents                      0.333     0.500   0.333
+  legal ownership documents          0.333     0.667   0.333
+  exact inspection ID (hybrid)       0.333     0.333   0.333
+
+  Detail (filtered case uses its scope filter):
+    'community amenities'
+      plain    top-3: ['meeting-notes.md#1', 'meeting-notes.md#2', 'inspection_report.txt#1'] (precision 0.667)
+      filtered top-3: ['meeting-notes.md#1', 'meeting-notes.md#2', 'meeting-notes.md#0'] (filter {'category': 'community'}, precision 0.667)
+      hybrid   top-3: ['meeting-notes.md#1', 'meeting-notes.md#2', 'inspection_report.txt#1'] (precision 0.667)
+    'tax documents'
+      plain    top-3: ['taxes.txt#0', 'property_guide.txt#2', 'ownership.txt#0'] (precision 0.333)
+      filtered top-3: ['taxes.txt#0', 'taxes.txt#1'] (filter {'category': 'tax'}, precision 0.500)
+      hybrid   top-3: ['taxes.txt#0', 'property_guide.txt#2', 'ownership.txt#0'] (precision 0.333)
+    'legal ownership documents'
+      plain    top-3: ['property_guide.txt#1', 'property_guide.txt#0', 'taxes.txt#0'] (precision 0.333)
+      filtered top-3: ['property_guide.txt#1', 'property_guide.txt#0', 'ownership.txt#0'] (filter {'category': 'legal'}, precision 0.667)
+      hybrid   top-3: ['property_guide.txt#1', 'property_guide.txt#0', 'taxes.txt#0'] (precision 0.333)
+    'exact inspection ID (hybrid)'
+      plain    top-3: ['inspection_report.txt#0', 'inspection_report.txt#2', 'inspection_report.txt#1'] (precision 0.333)
+      hybrid   top-3: ['inspection_report.txt#0', 'inspection_report.txt#2', 'inspection_report.txt#1'] (precision 0.333)
+
+  -> the filtered column is where precision improves:
+       tax documents: 0.333 -> 0.500 (filter {'category': 'tax'})
+       legal ownership documents: 0.333 -> 0.667 (filter {'category': 'legal'})
+     hybrid keeps precision equal-or-better and boosts exact terms (see TASK 3); with this word-overlap embedder, exact terms already drive vector similarity, so the hybrid gain shows as score separation rather than ranking flips.
