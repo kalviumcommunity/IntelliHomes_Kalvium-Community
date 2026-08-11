@@ -338,9 +338,7 @@ def metadata_value_counts(
 # ── Task 3: keyword / hybrid matching ─────────────────────────────────────
 
 
-def keyword_score(
-    query: str, text: str, *, exact_phrase_bonus: float = 0.25
-) -> float:
+def keyword_score(query: str, text: str, *, exact_phrase_bonus: float = 0.25) -> float:
     """Lexical overlap of the *query* terms with *text*, in [0, 1].
 
     Tokenizes both sides into lowercase alphanumeric terms and returns the
@@ -423,8 +421,10 @@ def hybrid_search(
             "total_chunks": total,
             "total_matching": total_matching,
             "metadata_filter": dict(metadata_filter) if metadata_filter else None,
-            "hybrid": {"vector_weight": vector_weight,
-                       "keyword_weight": keyword_weight},
+            "hybrid": {
+                "vector_weight": vector_weight,
+                "keyword_weight": keyword_weight,
+            },
             "results": [],
         }
 

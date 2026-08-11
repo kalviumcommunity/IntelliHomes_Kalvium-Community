@@ -78,7 +78,7 @@ The ranked hits become:
    ```
 
 2. a **structured sources list** (`{id, source, section, position, category,
-   score, text}` in rank order) so the UI can show *where* the answer came
+score, text}` in rank order) so the UI can show _where_ the answer came
    from.
 
 An optional `max_context_tokens` cap drops whole chunks from the lowest-ranked
@@ -106,14 +106,14 @@ The LLM is pluggable: `generate_stage(..., llm=callable)` accepts any
 
 The pipeline result carries the sources alongside the answer:
 
-| Key | Contents |
-| --- | --- |
-| `query` | the user question |
-| `embedding` | stage 1 output (mode/model/dim) |
-| `retrieval` | stage 2 output (top-k chunks + scores) |
-| `context` | stage 3 output (context block + **sources**) |
-| `answer` | stage 4 output (answer, model, prompts) |
-| `timings_ms` | per-stage wall-clock time |
+| Key          | Contents                                     |
+| ------------ | -------------------------------------------- |
+| `query`      | the user question                            |
+| `embedding`  | stage 1 output (mode/model/dim)              |
+| `retrieval`  | stage 2 output (top-k chunks + scores)       |
+| `context`    | stage 3 output (context block + **sources**) |
+| `answer`     | stage 4 output (answer, model, prompts)      |
+| `timings_ms` | per-stage wall-clock time                    |
 
 ## Running it
 
@@ -134,24 +134,24 @@ Sample output (committed): `backend/pipeline_sample_output.txt`.
 
 ## Configuration
 
-| Variable | Default | Used by |
-| --- | --- | --- |
-| `SAMPLE_QUERY` | "What document proves legal ownership…" | demo script |
-| `PIPELINE_K` | `3` | demo script |
-| `PIPELINE_OUTPUT` | `pipeline_sample_output.txt` | demo script |
-| `EMBEDDINGS_STORE` | `../data/embeddings/cleaned_corpus-embeddings.json` | embed |
-| `EMBEDDING_MODEL` | `nomic-embed-text` | embed |
-| `CHROMA_PATH` / `COLLECTION_NAME` | `chroma_db` / `property_chunks` | retrieve |
-| `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL` | Ollama `llama3.1:8b` | generate (live) |
+| Variable                                              | Default                                             | Used by         |
+| ----------------------------------------------------- | --------------------------------------------------- | --------------- |
+| `SAMPLE_QUERY`                                        | "What document proves legal ownership…"             | demo script     |
+| `PIPELINE_K`                                          | `3`                                                 | demo script     |
+| `PIPELINE_OUTPUT`                                     | `pipeline_sample_output.txt`                        | demo script     |
+| `EMBEDDINGS_STORE`                                    | `../data/embeddings/cleaned_corpus-embeddings.json` | embed           |
+| `EMBEDDING_MODEL`                                     | `nomic-embed-text`                                  | embed           |
+| `CHROMA_PATH` / `COLLECTION_NAME`                     | `chroma_db` / `property_chunks`                     | retrieve        |
+| `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL` | Ollama `llama3.1:8b`                                | generate (live) |
 
 ## Module map
 
-| Stage | Module | Function |
-| --- | --- | --- |
-| 1 · Embed | `pipeline/embed.py` | `embed_stage` |
-| 2 · Retrieve | `pipeline/retrieve.py` | `retrieve_stage` |
-| 3 · Assemble | `pipeline/assemble.py` | `assemble_stage` |
-| 4 · Generate | `pipeline/generate.py` | `generate_stage`, `make_llm` |
-| Orchestration | `pipeline/runner.py` | `run_pipeline` |
-| Demo | `scripts/run_pipeline.py` | `main` |
-| Tests | `tests/test_pipeline.py` | — |
+| Stage         | Module                    | Function                     |
+| ------------- | ------------------------- | ---------------------------- |
+| 1 · Embed     | `pipeline/embed.py`       | `embed_stage`                |
+| 2 · Retrieve  | `pipeline/retrieve.py`    | `retrieve_stage`             |
+| 3 · Assemble  | `pipeline/assemble.py`    | `assemble_stage`             |
+| 4 · Generate  | `pipeline/generate.py`    | `generate_stage`, `make_llm` |
+| Orchestration | `pipeline/runner.py`      | `run_pipeline`               |
+| Demo          | `scripts/run_pipeline.py` | `main`                       |
+| Tests         | `tests/test_pipeline.py`  | —                            |

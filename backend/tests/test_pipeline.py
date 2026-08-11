@@ -150,8 +150,12 @@ def test_retrieve_stage_matches_search_without_vector(collection, store_path):
         client=client,
         name=col.name,
     )
-    assert [h["id"] for h in via_vector["results"]] == [h["id"] for h in plain["results"]]
-    assert via_vector["results"][0]["score"] == pytest.approx(plain["results"][0]["score"])
+    assert [h["id"] for h in via_vector["results"]] == [
+        h["id"] for h in plain["results"]
+    ]
+    assert via_vector["results"][0]["score"] == pytest.approx(
+        plain["results"][0]["score"]
+    )
 
 
 def test_retrieve_stage_rejects_empty_vector(collection, store_path):
@@ -239,7 +243,9 @@ def test_assemble_stage_token_cap_truncates_from_lowest_rank():
 
 def _fake_llm(messages):
     """Deterministic test LLM that echoes the grounded context size."""
-    system = next((m.get("content", "") for m in messages if m.get("role") == "system"), "")
+    system = next(
+        (m.get("content", "") for m in messages if m.get("role") == "system"), ""
+    )
     return f"canned answer over {len(system)} context chars"
 
 
@@ -249,7 +255,9 @@ def test_generate_stage_with_pluggable_llm():
     assert result["answer"].startswith("canned answer")
     assert result["live"] is False
     assert result["model"] == "simulated"
-    assert "Property tax receipts" in result["system_prompt"]  # grounded context injected
+    assert (
+        "Property tax receipts" in result["system_prompt"]
+    )  # grounded context injected
     assert "how do I pay taxes" in result["user_prompt"]
     assert result["prompt_tokens"] > 0
 

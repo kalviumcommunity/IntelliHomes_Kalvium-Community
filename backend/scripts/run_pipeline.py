@@ -101,8 +101,11 @@ def build_sample_output(query: str, result: dict) -> str:
         f"(truncated: {result['context']['truncated']})",
         "",
         "  Grounded context passed to the model:",
-        "  " + result["context"]["context"].replace("\n", "\n  ") if
-        result["context"]["context"] else "  (no context retrieved)",
+        (
+            "  " + result["context"]["context"].replace("\n", "\n  ")
+            if result["context"]["context"]
+            else "  (no context retrieved)"
+        ),
         "",
         "── STAGE 4 · GENERATE ─────────────────────────────────────────────",
         f"  model : {result['answer']['model']}  (live={result['answer']['live']})",
@@ -112,8 +115,11 @@ def build_sample_output(query: str, result: dict) -> str:
         f"  {result['answer']['answer']}",
         "",
         "── RETURNED SOURCES ───────────────────────────────────────────────",
-        _format_sources(result["context"]["sources"]) if
-        result["context"]["sources"] else "  (no sources)",
+        (
+            _format_sources(result["context"]["sources"])
+            if result["context"]["sources"]
+            else "  (no sources)"
+        ),
         "",
         "── TIMINGS ────────────────────────────────────────────────────────",
         f"  {result['timings_ms']}",

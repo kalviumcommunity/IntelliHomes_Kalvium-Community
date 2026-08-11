@@ -68,9 +68,7 @@ def embed_stage(
     if mode is None:
         # Match the embedding backend that produced the indexed chunks.
         mode = store.get("mode")
-    model = store.get("model") or os.environ.get(
-        "EMBEDDING_MODEL", "nomic-embed-text"
-    )
+    model = store.get("model") or os.environ.get("EMBEDDING_MODEL", "nomic-embed-text")
 
     resolved_mode, vectors, stats = embed_query([query], mode=mode)
     vector = vectors[0]

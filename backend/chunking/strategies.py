@@ -24,13 +24,12 @@ def _get_encoder(model_name: str = "gpt-4o"):
 
 
 def fixed_chunk(text: str, size: int = 100, overlap: int = 20):
-    return [
-        text[start:end]
-        for start, end in _window_ranges(len(text), size, overlap)
-    ]
+    return [text[start:end] for start, end in _window_ranges(len(text), size, overlap)]
 
 
-def token_chunk(text: str, chunk_size: int = 180, overlap: int = 30, model_name: str = "gpt-4o") -> list[TokenChunk]:
+def token_chunk(
+    text: str, chunk_size: int = 180, overlap: int = 30, model_name: str = "gpt-4o"
+) -> list[TokenChunk]:
     encoder = _get_encoder(model_name)
     if encoder is not None:
         tokens = encoder.encode(text)
