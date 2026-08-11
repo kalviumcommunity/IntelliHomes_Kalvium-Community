@@ -44,10 +44,11 @@ def token_chunk(text: str, chunk_size: int = 180, overlap: int = 30, model_name:
         while start < len(tokens):
             end = min(start + chunk_size, len(tokens))
             chunk_tokens = tokens[start:end]
+            # encoder.decode() already returns str under tiktoken >= 0.13.0
             chunk_text = encoder.decode(chunk_tokens)
             chunks.append(
                 TokenChunk(
-                    text=chunk_text.decode("utf-8"),
+                    text=chunk_text,
                     token_count=len(chunk_tokens),
                     overlap_tokens=overlap,
                 )

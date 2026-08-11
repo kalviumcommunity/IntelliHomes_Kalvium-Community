@@ -1,0 +1,48 @@
+========================================================================
+IntelliHomes RAG pipeline — query-to-answer run
+========================================================================
+Query   : What document proves legal ownership of a property?
+k       : 3
+
+── STAGE 1 · EMBED ────────────────────────────────────────────────
+  mode   : simulated
+  model  : nomic-embed-text
+  dim    : 768
+  stats  : {'retries': 0, 'failed_batches': 0, 'failed_starts': []}
+
+── STAGE 2 · RETRIEVE ─────────────────────────────────────────────
+  top-3 of 14 chunks (mode=simulated, model=nomic-embed-text)
+
+── STAGE 3 · ASSEMBLE ─────────────────────────────────────────────
+  context tokens: 77  (truncated: False)
+
+  Grounded context passed to the model:
+  [1] property_guide.txt — Section 1 — score 0.546327
+  Buying property requires verifying ownership documents.
+  
+  [2] ownership.txt — Section 1 — score 0.441597
+  Property ownership should always be verified before purchase.
+  
+  [3] property_guide.txt — Section 2 — score 0.40452
+  A Title Deed confirms legal ownership.
+
+── STAGE 4 · GENERATE ─────────────────────────────────────────────
+  model : simulated  (live=False)
+  tokens: 156
+
+  Answer:
+  Based on the retrieved documents, the relevant context is provided above. Verify the cited sources (title deed, encumbrance certificate) with a legal expert before proceeding. (simulated reply; context characters: 616)
+
+── RETURNED SOURCES ───────────────────────────────────────────────
+    [1] property_guide.txt — Section 1  (score 0.546327)
+        chunk: property_guide.txt#0
+        text:  Buying property requires verifying ownership documents.
+    [2] ownership.txt — Section 1  (score 0.441597)
+        chunk: ownership.txt#0
+        text:  Property ownership should always be verified before purchase.
+    [3] property_guide.txt — Section 2  (score 0.40452)
+        chunk: property_guide.txt#1
+        text:  A Title Deed confirms legal ownership.
+
+── TIMINGS ────────────────────────────────────────────────────────
+  {'embed_ms': 1.19, 'retrieve_ms': 62.91, 'assemble_ms': 80.33, 'generate_ms': 0.1, 'total_ms': 144.53}
