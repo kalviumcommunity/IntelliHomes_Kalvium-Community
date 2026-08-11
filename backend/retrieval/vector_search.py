@@ -191,7 +191,9 @@ def search(
     query: str,
     k: int,
     *,
+    vector: list[float] | None = None,
     mode: str | None = None,
+    model: str | None = None,
     store_path: str | Path | None = None,
     client: chromadb.ClientAPI | None = None,
     path: str | None = None,
@@ -199,6 +201,12 @@ def search(
     metadata_filter: dict | None = None,
 ) -> dict:
     """Embed *query* and return the top-*k* most similar chunks in the store.
+
+    *vector* (optional) supplies a pre-computed query embedding — e.g. the
+    output of :func:`pipeline.embed.embed_stage` — so callers can embed the
+    query exactly once per pipeline run; when omitted the query is embedded
+    here with the backend given by *mode*. *model* (optional) overrides the
+    model label read from the store header / environment.
 
     *metadata_filter* (optional) restricts retrieval to chunks whose metadata
     matches a ChromaDB ``where`` clause — e.g. ``{"source": "taxes.txt"}`` or
@@ -234,10 +242,14 @@ def search(
         # Match the embedding backend that produced the indexed chunks, so
         # the query vector and the chunk vectors live in the same space.
         mode = store.get("mode")
-    model = store.get("model") or os.environ.get("EMBEDDING_MODEL", "nomic-embed-text")
+    if model is None:
+        model = store.get("model") or os.environ.get(
+            "EMBEDDING_MODEL", "nomic-embed-text"
+        )
 
-    _, vectors, _stats = embed_query([query], mode=mode)
-    vector = vectors[0]
+    if vector is None:
+        _, vectors, _stats = embed_query([query], mode=mode)
+        vector = vectors[0]
 
     _, collection = open_collection(client=client, path=path, name=name)
     total = collection.count()
@@ -326,9 +338,7 @@ def metadata_value_counts(
 # ── Task 3: keyword / hybrid matching ─────────────────────────────────────
 
 
-def keyword_score(
-    query: str, text: str, *, exact_phrase_bonus: float = 0.25
-) -> float:
+def keyword_score(query: str, text: str, *, exact_phrase_bonus: float = 0.25) -> float:
     """Lexical overlap of the *query* terms with *text*, in [0, 1].
 
     Tokenizes both sides into lowercase alphanumeric terms and returns the
@@ -354,7 +364,9 @@ def hybrid_search(
     query: str,
     k: int,
     *,
+    vector: list[float] | None = None,
     mode: str | None = None,
+    model: str | None = None,
     store_path: str | Path | None = None,
     client: chromadb.ClientAPI | None = None,
     path: str | None = None,
@@ -365,6 +377,9 @@ def hybrid_search(
     candidate_multiplier: int = 3,
 ) -> dict:
     """Vector search re-ranked with keyword matching (hybrid scoring).
+
+    *vector* (optional) supplies a pre-computed query embedding (see
+    :func:`search`); when omitted the query is embedded here.
 
     Retrieves a candidate pool of the top ``candidate_multiplier * k`` chunks
     from :func:`search` (or all matching chunks when the pool is smaller),
@@ -383,10 +398,14 @@ def hybrid_search(
     store = store_header(store_path)
     if mode is None:
         mode = store.get("mode")
-    model = store.get("model") or os.environ.get("EMBEDDING_MODEL", "nomic-embed-text")
+    if model is None:
+        model = store.get("model") or os.environ.get(
+            "EMBEDDING_MODEL", "nomic-embed-text"
+        )
 
-    _, vectors, _stats = embed_query([query], mode=mode)
-    vector = vectors[0]
+    if vector is None:
+        _, vectors, _stats = embed_query([query], mode=mode)
+        vector = vectors[0]
 
     _, collection = open_collection(client=client, path=path, name=name)
     total = collection.count()
@@ -402,8 +421,10 @@ def hybrid_search(
             "total_chunks": total,
             "total_matching": total_matching,
             "metadata_filter": dict(metadata_filter) if metadata_filter else None,
-            "hybrid": {"vector_weight": vector_weight,
-                       "keyword_weight": keyword_weight},
+            "hybrid": {
+                "vector_weight": vector_weight,
+                "keyword_weight": keyword_weight,
+            },
             "results": [],
         }
 
