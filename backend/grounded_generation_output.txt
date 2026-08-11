@@ -1,0 +1,52 @@
+============================================================
+TASK 1 + 2: GROUNDED GENERATION
+============================================================
+
+===== QUESTION =====
+What documents should I verify before buying a property?
+
+===== SUPPORTING CONTEXT =====
+
+Source: property_guide.txt
+Section: Section 1
+Position: 0
+Text: Buying property requires verifying ownership documents.
+
+Source: property_guide.txt
+Section: Section 2
+Position: 1
+Text: A Title Deed confirms legal ownership.
+
+Source: property_guide.txt
+Section: Section 3
+Position: 2
+Text: A Survey Plan defines property boundaries.
+
+Source: taxes.txt
+Section: Section 1
+Position: 0
+Text: Property Tax Receipts confirm that all taxes have been paid.
+
+
+===== GROUNDED ANSWER =====
+You should verify ownership documents, which include a Title Deed to confirm legal ownership.
+
+============================================================
+TASK 3: MISSING-CONTEXT FALLBACK
+============================================================
+
+===== QUESTION =====
+What is the exact market value of this property today?
+
+===== FALLBACK OUTPUT =====
+I don't have enough information in the provided context to answer confidently.
+
+============================================================
+TASK 4: WITH RETRIEVAL VS WITHOUT RETRIEVAL
+============================================================
+
+===== WITH RETRIEVAL =====
+You should verify ownership documents, which include a Title Deed to confirm legal ownership.
+
+===== WITHOUT RETRIEVAL =====
+I don't have enough information in the provided context to answer confidently.
