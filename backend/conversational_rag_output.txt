@@ -1,0 +1,137 @@
+============================================================
+CONVERSATIONAL RAG TEST
+============================================================
+
+============================================================
+USER
+============================================================
+What documents should I verify before buying a property?
+
+===== REWRITTEN RETRIEVAL QUERY =====
+What documents should I verify before buying a property?
+
+===== RETRIEVED CONTEXT =====
+
+--- Chunk 1 ---
+Source: inspection_report.txt
+Section: Section 1
+Position: 0
+Distance: 0.9366064667701721
+Text: Inspection report INSP-2024-001 for 42 Maple Street: the property was inspected on 2026-06-18 and no structural issues were found.
+
+--- Chunk 2 ---
+Source: meeting-notes.md
+Section: Section 1
+Position: 0
+Distance: 0.937244713306427
+Text: Community meeting notes: the board approved the annual maintenance fee of 1500 per quarter, payable to the HOA account.
+
+--- Chunk 3 ---
+Source: inspection_report.txt
+Section: Section 2
+Position: 1
+Distance: 0.9499897956848145
+Text: The roof was replaced in 2022 and the electrical wiring was upgraded to code in 2023.
+
+===== INJECTED CONTEXT =====
+[Chunk 1]
+Source: inspection_report.txt
+Section: Section 1
+Position: 0
+Text: Inspection report INSP-2024-001 for 42 Maple Street: the property was inspected on 2026-06-18 and no structural issues were found.
+
+[Chunk 2]
+Source: meeting-notes.md
+Section: Section 1
+Position: 0
+Text: Community meeting notes: the board approved the annual maintenance fee of 1500 per quarter, payable to the HOA account.
+
+[Chunk 3]
+Source: inspection_report.txt
+Section: Section 2
+Position: 1
+Text: The roof was replaced in 2022 and the electrical wiring was upgraded to code in 2023.
+
+===== ANSWER =====
+Based on the provided context, you may want to verify the inspection report (INSP-2024-001) for 42 Maple Street, specifically looking at the structural issues section. Additionally, it would be beneficial to review the community meeting notes regarding the annual maintenance fee and payment details.
+
+Source: Chunk 1 & Chunk 2
+
+============================================================
+USER
+============================================================
+Which one proves ownership?
+
+===== REWRITTEN RETRIEVAL QUERY =====
+What documents prove ownership of a property?
+
+===== RETRIEVED CONTEXT =====
+
+--- Chunk 1 ---
+Source: meeting-notes.md
+Section: Section 1
+Position: 0
+Distance: 0.9274855852127075
+Text: Community meeting notes: the board approved the annual maintenance fee of 1500 per quarter, payable to the HOA account.
+
+--- Chunk 2 ---
+Source: meeting-notes.md
+Section: Section 2
+Position: 1
+Distance: 0.9592157602310181
+Text: Swimming pool timings are 6 AM to 10 PM, and residents must show their access card at the gate.
+
+--- Chunk 3 ---
+Source: property_guide.txt
+Section: Section 3
+Position: 2
+Distance: 0.9652787446975708
+Text: A Survey Plan defines property boundaries.
+
+===== INJECTED CONTEXT =====
+[Chunk 1]
+Source: meeting-notes.md
+Section: Section 1
+Position: 0
+Text: Community meeting notes: the board approved the annual maintenance fee of 1500 per quarter, payable to the HOA account.
+
+[Chunk 2]
+Source: meeting-notes.md
+Section: Section 2
+Position: 1
+Text: Swimming pool timings are 6 AM to 10 PM, and residents must show their access card at the gate.
+
+[Chunk 3]
+Source: property_guide.txt
+Section: Section 3
+Position: 2
+Text: A Survey Plan defines property boundaries.
+
+===== ANSWER =====
+I don't have enough information in the provided context to answer this question.
+
+============================================================
+CONVERSATION SUMMARY
+============================================================
+
+===== TURN 1 =====
+User: What documents should I verify before buying a property?
+Rewritten query: What documents should I verify before buying a property?
+Answer: Based on the provided context, you may want to verify the inspection report (INSP-2024-001) for 42 Maple Street, specifically looking at the structural issues section. Additionally, it would be beneficial to review the community meeting notes regarding the annual maintenance fee and payment details.
+
+Source: Chunk 1 & Chunk 2
+
+===== TURN 2 =====
+User: Which one proves ownership?
+Rewritten query: What documents prove ownership of a property?
+Answer: I don't have enough information in the provided context to answer this question.
+
+===== CONVERSATION HISTORY =====
+user: What documents should I verify before buying a property?
+assistant: Based on the provided context, you may want to verify the inspection report (INSP-2024-001) for 42 Maple Street, specifically looking at the structural issues section. Additionally, it would be beneficial to review the community meeting notes regarding the annual maintenance fee and payment details.
+
+Source: Chunk 1 & Chunk 2
+user: Which one proves ownership?
+assistant: I don't have enough information in the provided context to answer this question.
+
+===== TEST COMPLETE =====
