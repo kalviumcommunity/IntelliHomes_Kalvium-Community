@@ -21,6 +21,14 @@ from scripts.index_corpus import index_store
 
 app = Flask(__name__)
 
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
+
 BACKEND_ROOT = Path(__file__).resolve().parent
 UPLOAD_DIR = BACKEND_ROOT / "uploads"
 EMBEDDING_DIR = BACKEND_ROOT.parent / "data" / "embeddings"
@@ -208,6 +216,57 @@ def query_documents() -> Any:
             }
             for hit in result.get("results", [])
         ],
+    })
+
+
+@app.post("/answer")
+def answer_question() -> Any:
+    payload = request.get_json(silent=True) or {}
+    question = str(payload.get("query") or payload.get("question") or "").strip()
+    if not question:
+        return jsonify({"status": "error", "message": "A non-empty question is required."}), 400
+
+    from retrieval.vector_search import search
+
+    try:
+        result = search(question, k=5)
+    except Exception as exc:  # pragma: no cover - retrieval runtime guard
+        return jsonify({"status": "error", "message": f"Answer generation failed: {exc}"}), 500
+
+    hits = result.get("results", [])
+    if not hits:
+        return jsonify({
+            "status": "ok",
+            "query": question,
+            "answer": "I don't have enough information to answer confidently.",
+            "sources": [],
+        })
+
+    sources = []
+    for hit in hits:
+        metadata = hit.get("metadata", {})
+        source = metadata.get("source") or hit.get("id")
+        sources.append({
+            "id": hit.get("id"),
+            "source": source,
+            "chunk_id": metadata.get("chunk_id") or hit.get("id"),
+            "section": metadata.get("section"),
+            "score": hit.get("score"),
+            "text": hit.get("text"),
+        })
+
+    top_text = hits[0].get("text", "").strip()
+    if not top_text:
+        answer = "I don't have enough information to answer confidently."
+    else:
+        source_names = ", ".join(s["source"] for s in sources[:3])
+        answer = f"Based on the retrieved source(s) ({source_names}), the relevant context says: {top_text}"
+
+    return jsonify({
+        "status": "ok",
+        "query": question,
+        "answer": answer,
+        "sources": sources,
     })
 
 
