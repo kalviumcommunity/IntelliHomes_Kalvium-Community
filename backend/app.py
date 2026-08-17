@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import json
 import os
+import time
 import uuid
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request, stream_with_context
 from werkzeug.utils import secure_filename
 
 from ingestion.loader import DocumentLoadError, UnsupportedFormatError, load_file
+from prompts.renderer import render_prompt
 from scripts.embed_corpus import (
     attach_vectors,
     chunk_corpus,
@@ -42,6 +45,14 @@ ALLOWED_EXTENSIONS = {
     ".txt",
     ".text",
 }
+
+
+@app.after_request
+def add_cors_headers(response: Response) -> Response:
+    response.headers.setdefault("Access-Control-Allow-Origin", "*")
+    response.headers.setdefault("Access-Control-Allow-Headers", "Content-Type")
+    response.headers.setdefault("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    return response
 
 
 @app.get("/health")
