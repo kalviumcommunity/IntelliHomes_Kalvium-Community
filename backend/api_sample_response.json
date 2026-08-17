@@ -1,0 +1,27 @@
+{
+  "status": "ok",
+  "query": "What documents verify property ownership?",
+  "answer": "Property ownership is verified by the title deed and the encumbrance certificate. Always confirm with original documents.",
+  "sources": [
+    {
+      "id": "taxes.txt#1",
+      "source": "ownership.txt",
+      "section": "Ownership Records",
+      "position": "1",
+      "category": "legal",
+      "score": 0.92,
+      "text": "Title deed and encumbrance certificate confirm ownership."
+    }
+  ],
+  "timings_ms": {
+    "embed_ms": 12.5,
+    "retrieve_ms": 34.2,
+    "assemble_ms": 5.1,
+    "generate_ms": 120.4,
+    "total_ms": 172.2
+  },
+  "metadata": {
+    "retrieval": {},
+    "context_tokens": 128
+  }
+}

@@ -24,6 +24,14 @@ from scripts.index_corpus import index_store
 
 app = Flask(__name__)
 
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
+
 BACKEND_ROOT = Path(__file__).resolve().parent
 UPLOAD_DIR = BACKEND_ROOT / "uploads"
 EMBEDDING_DIR = BACKEND_ROOT.parent / "data" / "embeddings"
@@ -222,168 +230,55 @@ def query_documents() -> Any:
     })
 
 
-def _citation_payload(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    citations: list[dict[str, Any]] = []
-    for index, source in enumerate(sources, start=1):
-        citations.append(
-            {
-                "marker": f"[{index}]",
-                "id": source.get("id"),
-                "document": source.get("source") or "unknown",
-                "section": source.get("section") or "unknown",
-                "position": source.get("position"),
-                "chunk_id": source.get("id"),
-                "score": source.get("score"),
-                "text": source.get("text", ""),
-            }
-        )
-    return citations
-
-
-def _iter_text_chunks(text: str, chunk_size: int = 24) -> Iterator[str]:
-    if not text:
-        return
-    start = 0
-    while start < len(text):
-        yield text[start : start + chunk_size]
-        start += chunk_size
-
-
-def _stream_live_generation(question: str, context: str) -> Iterator[str]:
-    from openai import OpenAI
-
-    model = os.environ.get("OPENAI_MODEL", "llama3.1:8b")
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY is not configured for live streaming")
-
-    system_prompt, user_prompt = render_prompt(context=context, question=question)
-    client = OpenAI(
-        api_key=api_key,
-        base_url=os.environ.get("OPENAI_BASE_URL"),
-        timeout=60,
-    )
-    stream = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        temperature=0,
-        stream=True,
-    )
-    for event in stream:
-        delta = ""
-        if event.choices and event.choices[0].delta:
-            delta = event.choices[0].delta.content or ""
-        if delta:
-            yield delta
-
-
-def _stream_chat_events(question: str, k: int) -> Iterator[str]:
-    from pipeline.generate import generate_stage
-    from pipeline.runner import run_pipeline
-
-    def _event(payload: dict[str, Any]) -> str:
-        return json.dumps(payload, ensure_ascii=True) + "\n"
-
-    answer_buffer = ""
-    citations: list[dict[str, Any]] = []
-
-    try:
-        yield _event({"type": "status", "message": "Retrieving grounded sources..."})
-        result = run_pipeline(question, k=max(1, k), live=False)
-        sources = result.get("context", {}).get("sources", [])
-        context_text = result.get("context", {}).get("context", "")
-        citations = _citation_payload(sources)
-
-        yield _event(
-            {
-                "type": "citations",
-                "citations": citations,
-                "hit_count": len(citations),
-            }
-        )
-
-        live_stream_enabled = os.environ.get("CHAT_STREAM_MODE", "auto").lower() != "simulated"
-        can_stream_live = bool(os.environ.get("OPENAI_API_KEY")) and live_stream_enabled
-
-        if can_stream_live:
-            token_stream = _stream_live_generation(question, context_text)
-        else:
-            full_answer = generate_stage(question, context_text, live=False).get("answer", "")
-            token_stream = _iter_text_chunks(full_answer)
-
-        for chunk in token_stream:
-            answer_buffer += chunk
-            yield _event({"type": "delta", "content": chunk})
-            if not can_stream_live:
-                time.sleep(0.02)
-
-        yield _event(
-            {
-                "type": "done",
-                "answer": answer_buffer,
-                "citations": citations,
-            }
-        )
-    except Exception as exc:  # pragma: no cover - streaming failures are surfaced to UI
-        yield _event(
-            {
-                "type": "error",
-                "message": f"Streaming failed: {exc}",
-                "partial_answer": answer_buffer,
-                "citations": citations,
-            }
-        )
-
-
-@app.post("/chat")
-def chat_documents() -> Any:
+@app.post("/answer")
+def answer_question() -> Any:
     payload = request.get_json(silent=True) or {}
-    question = str(payload.get("question") or payload.get("query") or "").strip()
-    k = int(payload.get("k") or 5)
-
+    question = str(payload.get("query") or payload.get("question") or "").strip()
     if not question:
         return jsonify({"status": "error", "message": "A non-empty question is required."}), 400
 
-    from pipeline.runner import run_pipeline
+    from retrieval.vector_search import search
 
     try:
-        result = run_pipeline(question, k=max(1, k), live=False)
-        citations = _citation_payload(result.get("context", {}).get("sources", []))
-        answer = result.get("answer", {}).get("answer", "")
-        return jsonify(
-            {
-                "status": "ok",
-                "question": question,
-                "answer": answer,
-                "citations": citations,
-            }
-        )
-    except Exception as exc:  # pragma: no cover - runtime guard
-        return jsonify({"status": "error", "message": f"Chat failed: {exc}"}), 500
+        result = search(question, k=5)
+    except Exception as exc:  # pragma: no cover - retrieval runtime guard
+        return jsonify({"status": "error", "message": f"Answer generation failed: {exc}"}), 500
 
+    hits = result.get("results", [])
+    if not hits:
+        return jsonify({
+            "status": "ok",
+            "query": question,
+            "answer": "I don't have enough information to answer confidently.",
+            "sources": [],
+        })
 
-@app.post("/chat/stream")
-def stream_chat_documents() -> Any:
-    payload = request.get_json(silent=True) or {}
-    question = str(payload.get("question") or payload.get("query") or "").strip()
-    k = int(payload.get("k") or 5)
+    sources = []
+    for hit in hits:
+        metadata = hit.get("metadata", {})
+        source = metadata.get("source") or hit.get("id")
+        sources.append({
+            "id": hit.get("id"),
+            "source": source,
+            "chunk_id": metadata.get("chunk_id") or hit.get("id"),
+            "section": metadata.get("section"),
+            "score": hit.get("score"),
+            "text": hit.get("text"),
+        })
 
-    if not question:
-        return jsonify({"status": "error", "message": "A non-empty question is required."}), 400
+    top_text = hits[0].get("text", "").strip()
+    if not top_text:
+        answer = "I don't have enough information to answer confidently."
+    else:
+        source_names = ", ".join(s["source"] for s in sources[:3])
+        answer = f"Based on the retrieved source(s) ({source_names}), the relevant context says: {top_text}"
 
-    headers = {
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-        "X-Accel-Buffering": "no",
-    }
-    return Response(
-        stream_with_context(_stream_chat_events(question, k=max(1, k))),
-        mimetype="application/x-ndjson",
-        headers=headers,
-    )
+    return jsonify({
+        "status": "ok",
+        "query": question,
+        "answer": answer,
+        "sources": sources,
+    })
 
 
 if __name__ == "__main__":
