@@ -5,6 +5,7 @@ description = "Backend for IntelliHomes RAG assistant — includes context-windo
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "flask>=3.0.0",
     "tiktoken>=0.5.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
