@@ -75,7 +75,66 @@ from scripts.embed_corpus import (  # noqa: E402
     embed_live,
     embed_offline,
     load_store,
+    estimate_tokens,
+    estimate_cost,
 )
+import hashlib
+import time
+from datetime import datetime, timezone
+
+
+# Cache + logging configuration
+CACHE_DIR = BACKEND_ROOT / "cache"
+LOG_DIR = BACKEND_ROOT / "logs"
+LOG_PATH = LOG_DIR / "rag_requests.jsonl"
+CACHE_TTL = int(os.environ.get("RAG_CACHE_TTL_SECONDS", str(24 * 3600)))
+
+
+def _ensure_dirs() -> None:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _cache_key_for(params: dict) -> str:
+    key = json.dumps(params, sort_keys=True, default=str)
+    return hashlib.sha256(key.encode("utf-8")).hexdigest()
+
+
+def _cache_get(key: str) -> dict | None:
+    path = CACHE_DIR / f"{key}.json"
+    if not path.exists():
+        return None
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        ts = raw.get("cached_at")
+        if ts and CACHE_TTL > 0 and (time.time() - float(ts)) > CACHE_TTL:
+            try:
+                path.unlink()
+            except Exception:
+                pass
+            return None
+        return raw.get("payload")
+    except Exception:
+        return None
+
+
+def _cache_set(key: str, payload: dict) -> None:
+    path = CACHE_DIR / f"{key}.json"
+    try:
+        data = {"cached_at": time.time(), "payload": payload}
+        path.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def _log_request(entry: dict) -> None:
+    _ensure_dirs()
+    entry.setdefault("timestamp", datetime.now(timezone.utc).isoformat())
+    try:
+        with open(LOG_PATH, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(entry, default=str) + "\n")
+    except Exception:
+        pass
 
 # ── Configuration (everything from the environment) ───────────────────────
 
@@ -229,13 +288,38 @@ def search(
     (read from the store header when *mode* is None). *k* is clamped to the
     number of matching chunks in the collection.
     """
+    # Prepare caching and logging
+    _ensure_dirs()
     store = store_header(store_path)
     if mode is None:
-        # Match the embedding backend that produced the indexed chunks, so
-        # the query vector and the chunk vectors live in the same space.
         mode = store.get("mode")
     model = store.get("model") or os.environ.get("EMBEDDING_MODEL", "nomic-embed-text")
 
+    cache_params = {
+        "query": query,
+        "k": int(k),
+        "mode": mode,
+        "model": model,
+        "metadata_filter": dict(metadata_filter) if metadata_filter else None,
+        "path": path,
+        "name": name,
+    }
+    cache_key = _cache_key_for(cache_params)
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        # Log cache hit
+        _log_request(
+            {
+                "query": query,
+                "cache_hit": True,
+                "cache_key": cache_key,
+                "result_preview": (cached.get("results") or [])[:3],
+            }
+        )
+        return cached
+
+    start = time.time()
+    # embed the query and run the query against ChromaDB
     _, vectors, _stats = embed_query([query], mode=mode)
     vector = vectors[0]
 
@@ -257,7 +341,20 @@ def search(
     }
 
     if effective_k == 0:
-        return {**base, "results": []}
+        result = {**base, "results": []}
+        # cache empty results
+        _cache_set(cache_key, result)
+        _log_request(
+            {
+                "query": query,
+                "cache_hit": False,
+                "cache_key": cache_key,
+                "tokens": estimate_tokens([query]),
+                "cost": estimate_cost(estimate_tokens([query]), model)[1],
+                "latency_ms": int((time.time() - start) * 1000),
+            }
+        )
+        return result
 
     query_kwargs: dict = {
         "query_embeddings": [vector],
@@ -267,12 +364,12 @@ def search(
     if metadata_filter:
         query_kwargs["where"] = metadata_filter
 
-    result = collection.query(**query_kwargs)
+    result_raw = collection.query(**query_kwargs)
 
-    ids = result["ids"][0]
-    documents = result["documents"][0]
-    metadatas = result["metadatas"][0]
-    distances = result["distances"][0]
+    ids = result_raw["ids"][0]
+    documents = result_raw["documents"][0]
+    metadatas = result_raw["metadatas"][0]
+    distances = result_raw["distances"][0]
 
     results = []
     for i, chunk_id in enumerate(ids):
@@ -286,7 +383,31 @@ def search(
             }
         )
 
-    return {**base, "results": results}
+    result = {**base, "results": results}
+
+    # track tokens + cost for the query embedding
+    tokens = estimate_tokens([query])
+    price, cost = estimate_cost(tokens, model)
+    latency = int((time.time() - start) * 1000)
+
+    # cache and log
+    _cache_set(cache_key, result)
+    _log_request(
+        {
+            "query": query,
+            "cache_hit": False,
+            "cache_key": cache_key,
+            "tokens": tokens,
+            "price_per_1m": price,
+            "cost": cost,
+            "latency_ms": latency,
+            "top_results": [
+                {"id": r.get("id"), "score": r.get("score")} for r in results[:3]
+            ],
+            "sources": [r.get("metadata", {}).get("source") for r in results[:5]],
+        }
+    )
+    return result
 
 
 # ── Task 4: metadata introspection ────────────────────────────────────────
@@ -384,7 +505,27 @@ def hybrid_search(
     if mode is None:
         mode = store.get("mode")
     model = store.get("model") or os.environ.get("EMBEDDING_MODEL", "nomic-embed-text")
+    # Prepare caching + logging
+    _ensure_dirs()
+    cache_params = {
+        "query": query,
+        "k": int(k),
+        "mode": mode,
+        "model": model,
+        "metadata_filter": dict(metadata_filter) if metadata_filter else None,
+        "vector_weight": vector_weight,
+        "keyword_weight": keyword_weight,
+        "candidate_multiplier": int(candidate_multiplier),
+        "path": path,
+        "name": name,
+    }
+    cache_key = _cache_key_for(cache_params)
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        _log_request({"query": query, "cache_hit": True, "cache_key": cache_key})
+        return cached
 
+    start = time.time()
     _, vectors, _stats = embed_query([query], mode=mode)
     vector = vectors[0]
 
@@ -392,7 +533,7 @@ def hybrid_search(
     total = collection.count()
     total_matching = _count_matching(collection, metadata_filter)
     if total_matching == 0:
-        return {
+        result = {
             "query": query,
             "requested_k": int(k),
             "k": 0,
@@ -402,10 +543,21 @@ def hybrid_search(
             "total_chunks": total,
             "total_matching": total_matching,
             "metadata_filter": dict(metadata_filter) if metadata_filter else None,
-            "hybrid": {"vector_weight": vector_weight,
-                       "keyword_weight": keyword_weight},
+            "hybrid": {"vector_weight": vector_weight, "keyword_weight": keyword_weight},
             "results": [],
         }
+        _cache_set(cache_key, result)
+        _log_request(
+            {
+                "query": query,
+                "cache_hit": False,
+                "cache_key": cache_key,
+                "tokens": estimate_tokens([query]),
+                "cost": estimate_cost(estimate_tokens([query]), model)[1],
+                "latency_ms": int((time.time() - start) * 1000),
+            }
+        )
+        return result
 
     candidate_k = max(int(k), min(total_matching, int(k) * candidate_multiplier))
     query_kwargs: dict = {
@@ -439,7 +591,7 @@ def hybrid_search(
     scored.sort(key=lambda hit: hit["score"], reverse=True)
     results = scored[: int(k)]
 
-    return {
+    result = {
         "query": query,
         "requested_k": int(k),
         "k": len(results),
@@ -456,3 +608,22 @@ def hybrid_search(
         },
         "results": results,
     }
+
+    tokens = estimate_tokens([query])
+    price, cost = estimate_cost(tokens, model)
+    latency = int((time.time() - start) * 1000)
+    _cache_set(cache_key, result)
+    _log_request(
+        {
+            "query": query,
+            "cache_hit": False,
+            "cache_key": cache_key,
+            "tokens": tokens,
+            "price_per_1m": price,
+            "cost": cost,
+            "latency_ms": latency,
+            "top_results": [{"id": r.get("id"), "score": r.get("score")} for r in results[:3]],
+            "sources": [r.get("metadata", {}).get("source") for r in results[:5]],
+        }
+    )
+    return result

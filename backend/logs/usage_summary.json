@@ -1,0 +1,31 @@
+{
+  "per_day": {
+    "2026-08-16": {
+      "requests": 2,
+      "cache_hits": 1,
+      "cost_usd": 0.00000024,
+      "tokens": 24,
+      "latency_ms": 125,
+      "errors": 0,
+      "avg_latency_ms": 62.5
+    },
+    "2026-08-17": {
+      "requests": 1,
+      "cache_hits": 0,
+      "cost_usd": 0.0000004,
+      "tokens": 20,
+      "latency_ms": 200,
+      "errors": 0,
+      "avg_latency_ms": 200.0
+    }
+  },
+  "overall": {
+    "requests": 3,
+    "cache_hits": 1,
+    "cost_usd": 0.00000064,
+    "tokens": 44,
+    "latency_ms": 325,
+    "errors": 0,
+    "avg_latency_ms": 108.33333333333333
+  }
+}
