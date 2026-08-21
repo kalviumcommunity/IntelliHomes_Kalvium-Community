@@ -96,18 +96,6 @@ def _init_database() -> None:
     DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
     with _database() as connection:
         connection.executescript("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE,
-                password_hash TEXT NOT NULL,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            );
-            CREATE TABLE IF NOT EXISTS sessions (
-                token TEXT PRIMARY KEY,
-                user_id INTEGER NOT NULL REFERENCES users(id),
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            );
             CREATE TABLE IF NOT EXISTS properties (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -119,15 +107,8 @@ def _init_database() -> None:
                 mode TEXT NOT NULL,
                 score INTEGER NOT NULL
             );
-            CREATE TABLE IF NOT EXISTS shortlist (
-                user_id INTEGER NOT NULL REFERENCES users(id),
-                property_id TEXT NOT NULL REFERENCES properties(id),
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                PRIMARY KEY (user_id, property_id)
-            );
             CREATE TABLE IF NOT EXISTS documents (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER REFERENCES users(id),
                 filename TEXT NOT NULL,
                 source TEXT NOT NULL,
                 chunks_indexed INTEGER NOT NULL DEFAULT 0,
@@ -163,7 +144,7 @@ _init_database()
 @app.after_request
 def add_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     return response
 
@@ -275,11 +256,9 @@ def market_stats() -> Any:
 
 @app.get("/documents")
 def documents() -> Any:
-    user = _user_from_request()
     with _database() as connection:
         rows = connection.execute(
-            "SELECT filename, source, chunks_indexed, created_at FROM documents WHERE user_id IS NULL OR user_id = ? ORDER BY created_at DESC LIMIT 20",
-            (user["id"] if user else -1,),
+            "SELECT filename, source, chunks_indexed, created_at FROM documents ORDER BY created_at DESC LIMIT 20",
         ).fetchall()
     return jsonify({"status": "ok", "documents": [dict(row) for row in rows]})
 
@@ -412,16 +391,10 @@ def _process_upload(file_path: Path) -> dict[str, Any]:
     }
     save_store(store, store_path)
     report = index_store(store_path=store_path, rebuild=False)
-    user = _user_from_request()
     with _database() as connection:
         connection.execute(
-            "INSERT INTO documents (user_id, filename, source, chunks_indexed) VALUES (?, ?, ?, ?)",
-            (
-                user["id"] if user else None,
-                file_path.name,
-                doc.source,
-                report["indexed"],
-            ),
+            "INSERT INTO documents (filename, source, chunks_indexed) VALUES (?, ?, ?)",
+            (file_path.name, doc.source, report["indexed"]),
         )
 
     return {
