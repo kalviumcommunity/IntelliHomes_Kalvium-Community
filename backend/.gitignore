@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 .env
+backend/chroma_db/
+backend/uploads/
