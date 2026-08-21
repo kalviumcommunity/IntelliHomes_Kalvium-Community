@@ -1,20 +1,33 @@
 [project]
 name = "backend"
 version = "0.2.0"
-description = "Backend for IntelliHomes RAG assistant — includes context-window-aware conversation history management"
-readme = "README.md"
+description = "Backend for IntelliHomes RAG assistant"
 requires-python = ">=3.12"
+
 dependencies = [
+    "flask>=3.0.0",
     "tiktoken>=0.5.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
     "pypdf>=6.14.2",
     "chromadb>=1.5.9",
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.22.0",
 ]
 
-[project.scripts]
-demo-trim = "demo_chat:run_demo_with_args"
-demo-summarise = "demo_chat:run_demo_with_args"
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "chunking*",
+    "conversation*",
+    "generation*",
+    "ingestion*",
+    "pipeline*",
+    "prompts*",
+    "reranking*",
+    "retrieval*",
+    "vector_db*",
+]
 
 [dependency-groups]
 dev = [

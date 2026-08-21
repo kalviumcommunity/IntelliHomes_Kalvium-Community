@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IntelliHomes Streaming Chat</title>
+  <style>
+    :root {
+      --bg: #f4efe5;
+      --panel: #fffaf2;
+      --ink: #1f2937;
+      --muted: #475569;
+      --accent: #0f766e;
+      --accent-2: #14b8a6;
+      --error: #b91c1c;
+      --line: #d6cdbf;
+      --code: #e7f9f7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 500px at -10% -5%, #f8d6a2 0%, transparent 65%),
+        radial-gradient(900px 450px at 110% 10%, #a7f3d0 0%, transparent 60%),
+        var(--bg);
+      padding: 24px;
+    }
+
+    .shell {
+      max-width: 960px;
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: var(--panel);
+      box-shadow: 0 24px 48px rgba(15, 23, 42, 0.12);
+    }
+
+    .header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(120deg, #fff4dc, #ecfeff);
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .chat {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: 64vh;
+      overflow-y: auto;
+    }
+
+    .bubble {
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      white-space: pre-wrap;
+      line-height: 1.45;
+      animation: rise 280ms ease;
+    }
+
+    .bubble.user {
+      align-self: flex-end;
+      max-width: 80%;
+      background: #ecfeff;
+      border-color: #99f6e4;
+    }
+
+    .bubble.assistant {
+      align-self: flex-start;
+      width: 100%;
+      background: #fff;
+    }
+
+    .bubble .status {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .citations {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    details.cite {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fffefb;
+      padding: 8px 10px;
+    }
+
+    details.cite summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .meta {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .chunk {
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1px solid #bae6fd;
+      background: var(--code);
+      padding: 10px;
+      font-family: "IBM Plex Mono", "Cascadia Code", monospace;
+      font-size: 0.88rem;
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+
+    .composer {
+      border-top: 1px solid var(--line);
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      background: #fffcf7;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 78px;
+      max-height: 180px;
+      resize: vertical;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      padding: 12px;
+      font: inherit;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 0 20px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error {
+      margin: 0 18px 16px;
+      border: 1px solid #fecaca;
+      color: var(--error);
+      background: #fff1f2;
+      border-radius: 10px;
+      padding: 10px;
+      display: none;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 10px;
+      }
+
+      .composer {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        min-height: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="header">
+      <h1>IntelliHomes Grounded Chat</h1>
+      <p>Streaming answers with source citations and inspectable chunks.</p>
+    </header>
+
+    <section id="chat" class="chat"></section>
+    <p id="error" class="error" role="alert"></p>
+
+    <form id="composer" class="composer">
+      <textarea id="question" placeholder="Ask a property question..."></textarea>
+      <button id="send" type="submit">Send</button>
+    </form>
+  </main>
+
+  <script>
+    const API_BASE = window.BACKEND_BASE_URL || "http://localhost:5000";
+    const STREAM_PATH = "/chat/stream";
+    const chat = document.getElementById("chat");
+    const form = document.getElementById("composer");
+    const questionInput = document.getElementById("question");
+    const sendButton = document.getElementById("send");
+    const errorBox = document.getElementById("error");
+
+    let activeController = null;
+
+    const appendBubble = (text, role) => {
+      const bubble = document.createElement("article");
+      bubble.className = `bubble ${role}`;
+      bubble.textContent = text;
+      chat.appendChild(bubble);
+      chat.scrollTop = chat.scrollHeight;
+      return bubble;
+    };
+
+    const setError = (message) => {
+      if (!message) {
+        errorBox.style.display = "none";
+        errorBox.textContent = "";
+        return;
+      }
+      errorBox.style.display = "block";
+      errorBox.textContent = message;
+    };
+
+    const renderCitations = (container, citations) => {
+      if (!citations || !citations.length) {
+        return;
+      }
+
+      const wrap = document.createElement("div");
+      wrap.className = "citations";
+
+      citations.forEach((citation) => {
+        const detail = document.createElement("details");
+        detail.className = "cite";
+
+        const summary = document.createElement("summary");
+        summary.textContent = `${citation.marker} ${citation.document} - ${citation.section}`;
+        detail.appendChild(summary);
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = `chunk: ${citation.chunk_id || "n/a"} | position: ${citation.position || "n/a"} | score: ${citation.score ?? "n/a"}`;
+        detail.appendChild(meta);
+
+        const chunk = document.createElement("pre");
+        chunk.className = "chunk";
+        chunk.textContent = citation.text || "No source text available.";
+        detail.appendChild(chunk);
+
+        wrap.appendChild(detail);
+      });
+
+      container.appendChild(wrap);
+    };
+
+    const processStream = async (question) => {
+      const userBubble = appendBubble(question, "user");
+      const assistantBubble = appendBubble("", "assistant");
+      const status = document.createElement("p");
+      status.className = "status";
+      status.textContent = "Starting stream...";
+      assistantBubble.appendChild(status);
+
+      let answerText = "";
+      let citations = [];
+      let streamEndedWithDone = false;
+
+      activeController = new AbortController();
+      const timeoutId = setTimeout(() => {
+        if (activeController) {
+          activeController.abort("Request timed out");
+        }
+      }, 90000);
+
+      try {
+        const response = await fetch(`${API_BASE}${STREAM_PATH}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question, k: 5 }),
+          signal: activeController.signal,
+        });
+
+        if (!response.ok || !response.body) {
+          const fallback = await response.text();
+          throw new Error(fallback || `Request failed with status ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.trim()) {
+              continue;
+            }
+
+            let event;
+            try {
+              event = JSON.parse(line);
+            } catch {
+              continue;
+            }
+
+            if (event.type === "status") {
+              status.textContent = event.message;
+            }
+
+            if (event.type === "citations") {
+              citations = event.citations || [];
+              status.textContent = `Found ${citations.length} grounded source(s).`;
+            }
+
+            if (event.type === "delta") {
+              answerText += event.content || "";
+              assistantBubble.firstChild.textContent = answerText;
+              chat.scrollTop = chat.scrollHeight;
+            }
+
+            if (event.type === "error") {
+              status.textContent = "Stream interrupted.";
+              setError(event.message || "The response stream failed.");
+              if (event.partial_answer && !answerText) {
+                answerText = event.partial_answer;
+                assistantBubble.firstChild.textContent = answerText;
+              }
+              if (event.citations && event.citations.length) {
+                citations = event.citations;
+              }
+              return;
+            }
+
+            if (event.type === "done") {
+              streamEndedWithDone = true;
+              status.textContent = "Completed.";
+              if (!answerText && event.answer) {
+                answerText = event.answer;
+                assistantBubble.firstChild.textContent = answerText;
+              }
+              citations = citations.length ? citations : (event.citations || []);
+            }
+          }
+        }
+
+        if (!streamEndedWithDone) {
+          status.textContent = "Stream ended early.";
+          setError("The stream ended before completion. You can retry.");
+        }
+      } catch (error) {
+        status.textContent = "Request failed.";
+        const message = String(error && error.message ? error.message : error);
+        if (message.includes("timed out") || message.includes("aborted")) {
+          setError("The stream timed out. Partial output (if any) is preserved. Please retry.");
+        } else {
+          setError(`Unable to stream answer: ${message}`);
+        }
+      } finally {
+        clearTimeout(timeoutId);
+        activeController = null;
+
+        if (citations.length) {
+          renderCitations(assistantBubble, citations);
+        }
+
+        if (!assistantBubble.firstChild.textContent.trim()) {
+          assistantBubble.firstChild.textContent = "No answer generated.";
+        }
+
+        if (!assistantBubble.contains(status)) {
+          assistantBubble.appendChild(status);
+        }
+      }
+    };
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setError("");
+
+      const question = questionInput.value.trim();
+      if (!question) {
+        setError("Please enter a question before sending.");
+        return;
+      }
+
+      if (activeController) {
+        activeController.abort("Replaced by newer request");
+      }
+
+      sendButton.disabled = true;
+      try {
+        questionInput.value = "";
+        await processStream(question);
+      } finally {
+        sendButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
