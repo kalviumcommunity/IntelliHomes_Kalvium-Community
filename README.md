@@ -203,4 +203,4 @@ README.md
 
 Made with ❤️ as part of the IntelliHomes project.
 
-**Backend link** - https://intellihomes-kalvium-community.onrender.com/
+**Backend link:** https://intellihomes-kalvium-community.onrender.com/
