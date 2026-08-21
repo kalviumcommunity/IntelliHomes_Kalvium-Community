@@ -17,7 +17,9 @@ app = FastAPI(title="IntelliHomes RAG API")
 
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=1, description="The user's question")
-    k: Optional[int] = Field(3, ge=1, le=20, description="Number of retrieval chunks to return")
+    k: int = Field(
+        3, ge=1, le=20, description="Number of retrieval chunks to return"
+    )
 
 
 class SourceItem(BaseModel):
@@ -39,6 +41,28 @@ class QueryResponse(BaseModel):
     metadata: Dict[str, Any] = {}
 
 
+@app.get("/")
+def root():
+    try:
+        return {"message": "Welcome to IntelliHomes backend"}
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail={"status": "not_ready", "error": str(exc)}
+        )
+
+
+@app.get("/health")
+def health():
+    try:
+        return {"status": "healthy"}
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail={"status": "not_ready", "error": str(exc)}
+        )
+
+
 @app.post("/query", response_model=QueryResponse)
 def query_endpoint(req: QueryRequest):
     """Accept a question, run the RAG pipeline, and return a structured JSON response.
@@ -49,7 +73,9 @@ def query_endpoint(req: QueryRequest):
     """
     question = req.question.strip()
     if not question:
-        raise HTTPException(status_code=400, detail="`question` must be a non-empty string")
+        raise HTTPException(
+            status_code=400, detail="`question` must be a non-empty string"
+        )
 
     try:
         # Run the pipeline. The pipeline reads model/DB config from env vars.
@@ -75,11 +101,13 @@ def query_endpoint(req: QueryRequest):
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as exc:  # pragma: no cover - bubble up server errors
         tb = traceback.format_exc()
-        raise HTTPException(status_code=500, detail=f"Internal server error: {exc}\n{tb}")
+        raise HTTPException(
+            status_code=500, detail=f"Internal server error: {exc}\n{tb}"
+        )
 
 
 if __name__ == "__main__":
     import uvicorn
 
     port = int(os.environ.get("API_PORT", 8000))
-    uvicorn.run("backend.api:app", host="0.0.0.0", port=port, reload=False)
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=False)
