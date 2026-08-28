@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: intellihomes
+    runtime: python
+    buildCommand: apt-get update && apt-get install -y tesseract-ocr && cd frontend && npm ci && npm run build && cd ../backend && pip install uv && uv sync --no-dev
+    startCommand: cd backend && uv run gunicorn -b 0.0.0.0:$PORT app:app
+    healthCheckPath: /health
+    disk:
+      name: intellihomes-data
+      mountPath: /opt/render/project/src/backend/runtime
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: EMBEDDING_MODE
+        value: simulated
+      - key: OCR_ENABLED
+        value: "1"
+      - key: INTELLIHOMES_DB_PATH
+        value: /opt/render/project/src/backend/runtime/intellihomes.sqlite3
+      - key: INTELLIHOMES_UPLOAD_DIR
+        value: /opt/render/project/src/backend/runtime/uploads
+      - key: INTELLIHOMES_EMBEDDING_DIR
+        value: /opt/render/project/src/backend/runtime/embeddings

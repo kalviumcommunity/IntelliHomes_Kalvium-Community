@@ -32,8 +32,11 @@ The script accepts files and folders; folders are scanned recursively.
 from __future__ import annotations
 
 import logging
+import os
+import shutil
 import sys
 import warnings
+from io import BytesIO
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -112,7 +115,7 @@ def _read_text_robust(path: Path) -> str:
 
 
 def _extract_pdf(path: Path) -> str:
-    """Extract plain text from every page of a PDF using pypdf."""
+    """Extract PDF text and OCR pages that contain no text layer."""
     try:
         from pypdf import PdfReader
         from pypdf.errors import PdfReadWarning
@@ -132,14 +135,53 @@ def _extract_pdf(path: Path) -> str:
             pypdf_logger.setLevel(previous_level)
 
     pages = []
+    pages_needing_ocr = []
     for page in reader.pages:
         try:
             text = page.extract_text() or ""
         except Exception as exc:  # noqa: BLE001 - one bad page shouldn't sink the file
             raise DocumentLoadError(f"page extraction failed: {exc}") from exc
-        if text.strip():
-            pages.append(text.strip())
+        pages.append(text.strip())
+
+    if any(not text for text in pages) and os.environ.get(
+        "OCR_ENABLED", "1"
+    ).lower() not in {"0", "false", "no"}:
+        for page_number, text in enumerate(pages):
+            if not text:
+                pages[page_number] = _ocr_pdf_page(path, page_number)
     return "\n\n".join(pages)
+
+
+def _ocr_pdf_page(path: Path, page_number: int) -> str:
+    """Render one PDF page and recognize it with the local Tesseract engine."""
+    if shutil.which(os.environ.get("TESSERACT_CMD", "tesseract")) is None:
+        raise DocumentLoadError(
+            "PDF page has no text layer; install Tesseract OCR and set TESSERACT_CMD if needed"
+        )
+    try:
+        import pymupdf
+        import pytesseract
+        from PIL import Image
+    except ImportError as exc:
+        raise DocumentLoadError(
+            "PDF page has no text layer; install pymupdf and pytesseract for OCR"
+        ) from exc
+
+    try:
+        pytesseract.pytesseract.tesseract_cmd = os.environ.get(
+            "TESSERACT_CMD", "tesseract"
+        )
+        with pymupdf.open(path) as document:
+            page = document.load_page(page_number)
+            scale = float(os.environ.get("OCR_SCALE", "2"))
+            pixmap = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False)
+            image = Image.open(BytesIO(pixmap.tobytes("png")))
+            text = pytesseract.image_to_string(
+                image, lang=os.environ.get("OCR_LANG", "eng")
+            )
+    except Exception as exc:
+        raise DocumentLoadError(f"OCR failed on page {page_number + 1}: {exc}") from exc
+    return text.strip()
 
 
 def _extract_html(path: Path) -> str:
@@ -251,8 +293,10 @@ def load_folder(folder: str | Path, recursive: bool = True) -> LoadResult:
 
 def print_intake_report(result: LoadResult, sample_chars: int = 120) -> None:
     """Print an intake confirmation for every document: length + short sample."""
-    print(f"Loaded {len(result.documents)} document(s), "
-          f"skipped {len(result.skipped)} file(s).")
+    print(
+        f"Loaded {len(result.documents)} document(s), "
+        f"skipped {len(result.skipped)} file(s)."
+    )
 
     for doc in result.documents:
         sample = " ".join(doc.text.split())
@@ -285,7 +329,11 @@ def main(argv: list[str] | None = None) -> int:
         else:
             try:
                 result.documents.append(load_file(p))
-            except (FileNotFoundError, UnsupportedFormatError, DocumentLoadError) as exc:
+            except (
+                FileNotFoundError,
+                UnsupportedFormatError,
+                DocumentLoadError,
+            ) as exc:
                 result.skipped.append(SkippedFile(str(p), str(exc)))
 
     print_intake_report(result)
