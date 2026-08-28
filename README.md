@@ -226,14 +226,14 @@ Open `http://localhost:5173`. In development, React calls the Flask API on port 
 
 ## Deploy One Link
 
-The root `render.yaml` configures a single Render web service with a persistent disk. It builds the React app, serves `frontend/dist` from Flask, runs the API with Gunicorn, and keeps accounts, uploads, embeddings, and SQLite metadata across restarts. To deploy:
+The root `render.yaml` configures a single Render web service with a persistent disk. It builds the React app, serves `frontend/dist` from Flask, runs the API with Gunicorn, and keeps uploads, embeddings, and SQLite metadata across restarts. To deploy:
 
 1. Push this repository to GitHub.
 2. In Render, choose **New > Blueprint** and select the repository.
 3. Add `OPENAI_API_KEY` and any `OPENAI_BASE_URL` or model settings if live LLM responses are needed. Without a key, the project uses its deterministic retrieval/embedding fallback.
 4. Deploy. Render provides one URL for both the website and its API.
 
-The implemented account and data flows are: registration/login, authenticated saved shortlists, persisted property records, calculated comparison scores, upload indexing, document history, grounded document questions, and source citations.
+The implemented data flows are: persisted property records, calculated comparison scores, upload indexing, document history, grounded document questions, and source citations.
 
 Scanned-PDF OCR is enabled by default. Local setup requires the `tesseract-ocr` system package; Python dependencies are installed by `uv sync`. OCR is applied only to PDF pages with no text layer, then the recognized text follows the same chunking, embedding, indexing, and citation path as ordinary PDF text.
 
